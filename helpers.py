@@ -62,9 +62,32 @@ def _adapt_query(query):
 
 def _get_row_value(row, key, default=None):
     """Obtém valor de uma row de forma compatível"""
+    if row is None:
+        return default
+    
+    # Tentar acesso como dicionário
     if hasattr(row, 'get'):
-        return row.get(key, default)
-    return row[key] if key in row else default
+        try:
+            return row.get(key, default)
+        except:
+            pass
+    
+    # Tentar acesso como atributo
+    if hasattr(row, key):
+        return getattr(row, key, default)
+    
+    # Tentar acesso como índice (para sqlite3.Row)
+    try:
+        if key in row:
+            return row[key]
+    except:
+        pass
+    
+    # Tentar acesso por índice numérico se for tupla
+    if isinstance(row, (tuple, list)):
+        return default
+    
+    return default
 
 def get_site_content():
     """Retorna todo o conteúdo do site do banco de dados"""
@@ -74,19 +97,52 @@ def get_site_content():
         content = {}
         query = 'SELECT section, field, content, image_path FROM site_content'
         rows = c.execute(_adapt_query(query)).fetchall()
+        
+        if not rows:
+            conn.close()
+            return {}
+        
         for row in rows:
-            section = _get_row_value(row, 'section')
-            field = _get_row_value(row, 'field')
+            # Usar acesso direto como no teste que funciona
+            if hasattr(row, 'get'):
+                section = row.get('section')
+                field = row.get('field')
+                content_val = row.get('content')
+                image_path = row.get('image_path')
+            else:
+                # Tentar acesso por índice para sqlite3.Row
+                try:
+                    section = row['section']
+                    field = row['field']
+                    content_val = row['content']
+                    image_path = row['image_path']
+                except:
+                    section = _get_row_value(row, 'section')
+                    field = _get_row_value(row, 'field')
+                    content_val = _get_row_value(row, 'content')
+                    image_path = _get_row_value(row, 'image_path')
+            
+            if not section or not field:
+                continue  # Pular rows inválidas
+            
             if section not in content:
                 content[section] = {}
+            
+            # Normalizar caminhos de imagem antigos (compatibilidade)
+            if image_path and image_path.startswith('uploads/'):
+                # Remover prefixo uploads/ para compatibilidade com nova estrutura
+                image_path = image_path.replace('uploads/', '', 1)
+            
             content[section][field] = {
-                'content': _get_row_value(row, 'content'),
-                'image_path': _get_row_value(row, 'image_path')
+                'content': content_val,
+                'image_path': image_path
             }
         conn.close()
         return content
     except Exception as e:
         print(f"Erro em get_site_content: {e}")
+        import traceback
+        traceback.print_exc()
         return {}
 
 def get_projects():

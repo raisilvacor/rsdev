@@ -11,17 +11,18 @@
       {% set favicon_path = site_content.header.logo_inverse.image_path.replace('\\', '/') %}
       {% set favicon_url = get_image_url(favicon_path) %}
       {% set favicon_lower = favicon_path|lower %}
+      {% set cache_version = favicon_path|replace('/', '_')|replace('\\', '_')|replace('.', '_') %}
       {% if '.svg' in favicon_lower %}
-        <link rel="icon" href="{{ favicon_url }}" type="image/svg+xml">
+        <link rel="icon" href="{{ favicon_url }}?v={{ cache_version }}" type="image/svg+xml">
       {% elif '.png' in favicon_lower %}
-        <link rel="icon" href="{{ favicon_url }}" type="image/png">
+        <link rel="icon" href="{{ favicon_url }}?v={{ cache_version }}" type="image/png">
       {% elif '.ico' in favicon_lower %}
-        <link rel="icon" href="{{ favicon_url }}" type="image/x-icon">
+        <link rel="icon" href="{{ favicon_url }}?v={{ cache_version }}" type="image/x-icon">
       {% else %}
-        <link rel="icon" href="{{ favicon_url }}" type="image/x-icon">
+        <link rel="icon" href="{{ favicon_url }}?v={{ cache_version }}" type="image/x-icon">
       {% endif %}
-      <link rel="shortcut icon" href="{{ favicon_url }}">
-      <link rel="apple-touch-icon" href="{{ favicon_url }}">
+      <link rel="shortcut icon" href="{{ favicon_url }}?v={{ cache_version }}">
+      <link rel="apple-touch-icon" href="{{ favicon_url }}?v={{ cache_version }}">
     {% else %}
       <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
       <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
@@ -66,7 +67,9 @@
                     <div class="rd-navbar-brand"><a class="brand" href="{{ url_for('index') }}">
                       {% if site_content.get('header') and site_content.header.get('logo') and site_content.header.logo.get('image_path') %}
                         {% set logo_path = site_content.header.logo.image_path.replace('\\', '/') %}
-                        <img src="{{ get_image_url(logo_path) }}" alt="" width="223" height="50"/>
+                        {% set logo_url = get_image_url(logo_path) %}
+                        {% set cache_version = logo_path|replace('/', '_')|replace('\\', '_')|replace('.', '_') %}
+                        <img src="{{ logo_url }}?v={{ cache_version }}" alt="" width="223" height="50"/>
                       {% else %}
                         <img src="{{ url_for('static', filename='images/logo-default-223x50.png') }}" alt="" width="223" height="50"/>
                       {% endif %}
