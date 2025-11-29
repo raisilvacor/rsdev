@@ -23,7 +23,20 @@ else:
 app.register_blueprint(admin_bp)
 
 # Inicializar banco de dados
-init_db()
+# Se DATABASE_URL estiver definido, usar PostgreSQL e inicializar automaticamente
+# Caso contrário, inicializar SQLite local
+if os.environ.get('DATABASE_URL'):
+    try:
+        from init_postgres import init_postgres_db
+        print("Inicializando banco de dados PostgreSQL...")
+        init_postgres_db()
+        print("✓ PostgreSQL inicializado com sucesso!")
+    except Exception as e:
+        print(f"⚠️ Aviso: Erro ao inicializar PostgreSQL: {e}")
+        print("A aplicação continuará, mas pode haver problemas se o banco não estiver configurado.")
+else:
+    init_db()
+    print("✓ SQLite inicializado com sucesso!")
 
 # Configurações de email (carregar de config.py ou variáveis de ambiente)
 app.config['MAIL_CONFIG'] = {

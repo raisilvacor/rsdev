@@ -5,9 +5,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
-import sqlite3
 from datetime import datetime
 from functools import wraps
+from db_connection import get_db
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -375,11 +375,7 @@ def login_required(f):
     return decorated_function
 
 
-def get_db():
-    """Obtém conexão com o banco de dados"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# get_db() agora é importado de db_connection.py
 
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
