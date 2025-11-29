@@ -242,6 +242,25 @@ def init_postgres_db():
             )
         ''')
         
+        # Tabela de imagens armazenadas no banco (para persistência no Render Free)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS stored_images (
+                id SERIAL PRIMARY KEY,
+                image_key VARCHAR(500) UNIQUE NOT NULL,
+                image_data BYTEA NOT NULL,
+                mime_type VARCHAR(100) NOT NULL,
+                filename VARCHAR(255) NOT NULL,
+                file_size INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Criar índice para busca rápida por image_key
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_stored_images_key ON stored_images(image_key)
+        ''')
+        
         conn.commit()
         print("✓ Tabelas criadas com sucesso!")
         

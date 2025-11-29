@@ -149,8 +149,27 @@ def handle_recaptcha():
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    """Rota para servir arquivos da pasta de uploads persistente"""
+    """Rota para servir arquivos da pasta de uploads persistente (fallback para desenvolvimento local)"""
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/image/<path:image_key>')
+def serve_image_from_db(image_key):
+    """Rota para servir imagens diretamente do banco de dados PostgreSQL"""
+    from image_storage import get_image_from_db
+    from flask import Response
+    
+    image_data, mime_type, filename = get_image_from_db(image_key)
+    
+    if image_data:
+        return Response(image_data, mimetype=mime_type or 'image/png')
+    else:
+        # Fallback: tentar servir do sistema de arquivos local (desenvolvimento)
+        try:
+            return send_from_directory(app.config['UPLOAD_FOLDER'], image_key)
+        except:
+            # Se não encontrar, retornar 404
+            from flask import abort
+            abort(404)
 
 
 if __name__ == '__main__':

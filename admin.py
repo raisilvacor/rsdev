@@ -499,25 +499,47 @@ def content():
                                     upload_path = os.path.join(upload_dir, filename)
                                     
                                     try:
-                                        image_file.save(upload_path)
-                                        # Verificar se o arquivo foi salvo
-                                        if os.path.exists(upload_path):
-                                            # Salvar caminho relativo para uso com url_for('uploaded_file')
-                                            # Formato: logos/filename.jpg ou banners/filename.jpg ou images/filename.jpg
-                                            if section == 'header' and 'logo' in field:
-                                                image_path = f"logos/{filename}"
-                                            elif section == 'banner':
-                                                image_path = f"banners/{filename}"
-                                            else:
-                                                image_path = f"images/{filename}"
-                                            
+                                        # Determinar categoria para o banco de dados
+                                        if section == 'header' and 'logo' in field:
+                                            category = 'logos'
+                                        elif section == 'banner':
+                                            category = 'banners'
+                                        else:
+                                            category = 'images'
+                                        
+                                        # Tentar salvar no banco de dados primeiro (para persistência no Render Free)
+                                        from image_storage import save_image_to_db
+                                        image_path = save_image_to_db(image_file, category=category)
+                                        
+                                        if image_path:
+                                            # Sucesso: imagem salva no banco
                                             if key_tuple not in updates:
                                                 updates[key_tuple] = {'content': None, 'image_path': None}
                                             updates[key_tuple]['image_path'] = image_path
                                         else:
-                                            flash(f'Erro: Arquivo {filename} não foi salvo corretamente.', 'error')
+                                            # Fallback: salvar em arquivo local (desenvolvimento)
+                                            image_file.seek(0)  # Reset file pointer
+                                            os.makedirs(upload_dir, exist_ok=True)
+                                            image_file.save(upload_path)
+                                            
+                                            if os.path.exists(upload_path):
+                                                # Formato: logos/filename.jpg ou banners/filename.jpg ou images/filename.jpg
+                                                if section == 'header' and 'logo' in field:
+                                                    image_path = f"logos/{filename}"
+                                                elif section == 'banner':
+                                                    image_path = f"banners/{filename}"
+                                                else:
+                                                    image_path = f"images/{filename}"
+                                                
+                                                if key_tuple not in updates:
+                                                    updates[key_tuple] = {'content': None, 'image_path': None}
+                                                updates[key_tuple]['image_path'] = image_path
+                                            else:
+                                                flash(f'Erro: Arquivo {filename} não foi salvo corretamente.', 'error')
                                     except Exception as e:
                                         flash(f'Erro ao salvar imagem {filename}: {str(e)}', 'error')
+                                        import traceback
+                                        traceback.print_exc()
                                 else:
                                     flash(f'Formato de campo inválido: {key}', 'error')
                             else:
@@ -620,14 +642,24 @@ def projects():
             
             image_path = None
             if image_file and image_file.filename and allowed_file(image_file.filename):
-                filename = secure_filename(image_file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"{timestamp}_{filename}"
-                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
-                os.makedirs(upload_dir, exist_ok=True)
-                upload_path = os.path.join(upload_dir, filename)
-                image_file.save(upload_path)
-                image_path = f"images/{filename}"
+                # Tentar salvar no banco de dados primeiro (persistência no Render Free)
+                try:
+                    from image_storage import save_image_to_db
+                    image_path = save_image_to_db(image_file, category='images')
+                except Exception as e:
+                    print(f"Erro ao salvar no banco, usando fallback: {e}")
+                
+                # Fallback para arquivo local se não conseguiu salvar no banco
+                if not image_path:
+                    filename = secure_filename(image_file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    filename = f"{timestamp}_{filename}"
+                    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    upload_path = os.path.join(upload_dir, filename)
+                    image_file.seek(0)  # Reset file pointer
+                    image_file.save(upload_path)
+                    image_path = f"images/{filename}"
             
             project_id = request.form.get('id')
             if project_id:

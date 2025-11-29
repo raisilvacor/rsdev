@@ -9,8 +9,7 @@ from flask import url_for
 def get_image_url(image_path):
     """
     Retorna a URL correta para uma imagem.
-    Se for um upload (logos/, banners/, images/), usa url_for('uploaded_file').
-    Caso contrário, usa url_for('static').
+    Verifica primeiro se está no banco de dados, depois tenta arquivo, depois static.
     """
     if not image_path:
         return None
@@ -32,23 +31,31 @@ def get_image_url(image_path):
         'images/parallax-',
     ]
     
-    # Se começa com logos/ ou banners/, é definitivamente um upload
-    if path.startswith('logos/') or path.startswith('banners/'):
-        return url_for('uploaded_file', filename=path)
-    
-    # Se começa com images/, verificar se é estático ou upload
-    if path.startswith('images/'):
-        # Verificar se é uma imagem estática conhecida
-        is_static = any(path.startswith(prefix) for prefix in static_image_prefixes)
-        if is_static:
-            return url_for('static', filename=path)
-        else:
-            # É um upload em images/
-            return url_for('uploaded_file', filename=path)
-    
     # Se começa com uploads/, remover o prefixo (compatibilidade com dados antigos)
     if path.startswith('uploads/'):
         path = path.replace('uploads/', '', 1)
+    
+    # Se for um upload conhecido (logos/, banners/, images/), verificar se está no banco
+    is_upload = False
+    if path.startswith('logos/') or path.startswith('banners/'):
+        is_upload = True
+    elif path.startswith('images/'):
+        # Verificar se é uma imagem estática conhecida
+        is_static = any(path.startswith(prefix) for prefix in static_image_prefixes)
+        is_upload = not is_static
+    
+    # Se for upload, tentar buscar no banco primeiro (para Render Free)
+    if is_upload:
+        try:
+            from image_storage import image_exists_in_db
+            if image_exists_in_db(path):
+                # Imagem está no banco, usar rota de serviço do banco
+                return url_for('serve_image_from_db', image_key=path)
+        except:
+            # Se houver erro, continuar com fallback
+            pass
+        
+        # Fallback: tentar arquivo local (desenvolvimento)
         return url_for('uploaded_file', filename=path)
     
     # Padrão: assumir que é estático
