@@ -45,3 +45,19 @@ Thumbs.db
 .env
 .env.local
 
+# Database
+site_content.db
+*.db
+
+# Uploads (imagens enviadas pelos usuários)
+static/uploads/
+uploads/
+
+# Scripts temporários
+fix_*.py
+migrate_to_flask.py
+update_template_urls.py
+add_*.py
+check_*.py
+test_*.py
+
