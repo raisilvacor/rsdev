@@ -47,8 +47,15 @@ def get_db():
     
     if database_url:
         # PostgreSQL (produção)
-        import psycopg2
-        from psycopg2.extras import RealDictCursor
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+        except ImportError as e:
+            raise ImportError(
+                f"Não foi possível importar psycopg2. Erro: {e}\n"
+                f"Isso geralmente acontece quando psycopg2-binary não é compatível com a versão do Python.\n"
+                f"Tente usar Python 3.11 ou 3.12. Verifique o arquivo runtime.txt."
+            ) from e
         
         # Converter URL do formato postgres:// para postgresql:// se necessário
         if database_url.startswith('postgres://'):
