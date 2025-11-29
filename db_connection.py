@@ -46,13 +46,17 @@ def get_db():
     database_url = os.environ.get('DATABASE_URL')
     
     # Tentar usar PostgreSQL se DATABASE_URL estiver definido
-    use_postgres = False
+    psycopg2_module = None
+    RealDictCursor_class = None
+    
     if database_url:
         # Tentar importar psycopg2
         try:
             import psycopg2
             from psycopg2.extras import RealDictCursor
-            use_postgres = True
+            # Armazenar referências aos módulos importados
+            psycopg2_module = psycopg2
+            RealDictCursor_class = RealDictCursor
         except ImportError as e:
             # Se psycopg2 não pode ser importado (ex: Python 3.13 incompatível),
             # fazer fallback para SQLite com aviso nos logs
@@ -61,16 +65,17 @@ def get_db():
             print(f"⚠️ Isso geralmente acontece quando psycopg2-binary não é compatível com Python 3.13.", file=sys.stderr)
             print(f"⚠️ SOLUÇÃO: No painel do Render, faça 'Clear Build Cache & Deploy' para aplicar runtime.txt", file=sys.stderr)
             print(f"⚠️ Usando SQLite como fallback temporário...", file=sys.stderr)
-            use_postgres = False
+            psycopg2_module = None
+            RealDictCursor_class = None
     
-    if use_postgres and database_url:
+    # Se psycopg2 foi importado com sucesso e DATABASE_URL está definido, usar PostgreSQL
+    if psycopg2_module is not None and database_url:
         # Converter URL do formato postgres:// para postgresql:// se necessário
         if database_url.startswith('postgres://'):
             database_url = database_url.replace('postgres://', 'postgresql://', 1)
         
-        import psycopg2
-        from psycopg2.extras import RealDictCursor
-        conn = psycopg2.connect(database_url, sslmode='require')
+        # Usar as referências aos módulos importados com sucesso
+        conn = psycopg2_module.connect(database_url, sslmode='require')
         
         # Criar uma classe wrapper para a conexão PostgreSQL
         class PostgresConnection:
@@ -79,7 +84,7 @@ def get_db():
                 self.row_factory = None  # Para compatibilidade
             
             def cursor(self):
-                return PostgresCursor(self._conn.cursor(cursor_factory=RealDictCursor))
+                return PostgresCursor(self._conn.cursor(cursor_factory=RealDictCursor_class))
             
             def commit(self):
                 return self._conn.commit()
