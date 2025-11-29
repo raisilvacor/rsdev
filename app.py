@@ -1,7 +1,7 @@
 """
 Aplicação Flask principal
 """
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 import os
 from forms import process_contact_form, verify_recaptcha
 from admin import admin_bp, init_db
@@ -10,6 +10,14 @@ from helpers import get_site_content, get_projects, get_services, get_pricing, g
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Detectar ambiente de produção (Render.com define PORT automaticamente)
+is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
+if is_production:
+    app.config['DEBUG'] = False
+    app.config['TESTING'] = False
+else:
+    app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
 # Registrar blueprint do admin
 app.register_blueprint(admin_bp)
@@ -111,5 +119,8 @@ def handle_recaptcha():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Usar porta definida pela variável de ambiente PORT (para Render.com) ou padrão 5000
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = not is_production
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
 

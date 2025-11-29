@@ -136,6 +136,33 @@ export SECRET_KEY=sua-chave-secreta-forte
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ```
 
+### Deploy no Render.com
+
+1. **Conecte seu repositório GitHub ao Render**
+
+2. **Configure as variáveis de ambiente no painel do Render:**
+   - `RENDER=true` (definido automaticamente pelo Render)
+   - `FLASK_ENV=production`
+   - `SECRET_KEY=sua-chave-secreta-forte-aqui`
+   - `MAIL_USE_SMTP=True` (opcional)
+   - `MAIL_HOST=smtp.gmail.com` (opcional)
+   - `MAIL_PORT=465` (opcional)
+   - `MAIL_USERNAME=seu-email@gmail.com` (opcional)
+   - `MAIL_PASSWORD=sua-senha` (opcional)
+   - `MAIL_RECIPIENT=destinatario@gmail.com` (opcional)
+
+3. **Configure o Start Command:**
+   ```
+   gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 app:app
+   ```
+
+4. **Build Command (deixe em branco ou use):**
+   ```
+   pip install -r requirements.txt
+   ```
+
+⚠️ **NOTA:** O Render automaticamente detecta Flask e pode usar `python app.py`, mas é recomendado usar Gunicorn para produção. O código já detecta automaticamente o ambiente Render e desativa o modo debug.
+
 ## 📝 Tecnologias Utilizadas
 
 - **Backend:** Flask (Python)
