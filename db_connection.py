@@ -45,22 +45,31 @@ def get_db():
     """
     database_url = os.environ.get('DATABASE_URL')
     
+    # Tentar usar PostgreSQL se DATABASE_URL estiver definido
+    use_postgres = False
     if database_url:
-        # PostgreSQL (produção)
+        # Tentar importar psycopg2
         try:
             import psycopg2
             from psycopg2.extras import RealDictCursor
+            use_postgres = True
         except ImportError as e:
-            raise ImportError(
-                f"Não foi possível importar psycopg2. Erro: {e}\n"
-                f"Isso geralmente acontece quando psycopg2-binary não é compatível com a versão do Python.\n"
-                f"Tente usar Python 3.11 ou 3.12. Verifique o arquivo runtime.txt."
-            ) from e
-        
+            # Se psycopg2 não pode ser importado (ex: Python 3.13 incompatível),
+            # fazer fallback para SQLite com aviso nos logs
+            import sys
+            print(f"⚠️ AVISO CRÍTICO: Não foi possível importar psycopg2. Erro: {e}", file=sys.stderr)
+            print(f"⚠️ Isso geralmente acontece quando psycopg2-binary não é compatível com Python 3.13.", file=sys.stderr)
+            print(f"⚠️ SOLUÇÃO: No painel do Render, faça 'Clear Build Cache & Deploy' para aplicar runtime.txt", file=sys.stderr)
+            print(f"⚠️ Usando SQLite como fallback temporário...", file=sys.stderr)
+            use_postgres = False
+    
+    if use_postgres and database_url:
         # Converter URL do formato postgres:// para postgresql:// se necessário
         if database_url.startswith('postgres://'):
             database_url = database_url.replace('postgres://', 'postgresql://', 1)
         
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
         conn = psycopg2.connect(database_url, sslmode='require')
         
         # Criar uma classe wrapper para a conexão PostgreSQL
@@ -125,7 +134,7 @@ def get_db():
         
         return PostgresConnection(conn)
     else:
-        # SQLite (desenvolvimento)
+        # SQLite (desenvolvimento ou fallback)
         DB_PATH = 'site_content.db'
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
