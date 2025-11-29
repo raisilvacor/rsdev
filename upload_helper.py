@@ -29,11 +29,10 @@ def save_image_persistent(image_file, category='images', upload_base=None):
     if not image_file or not image_file.filename:
         return None
     
-    # Verificar configuração de armazenamento
-    use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'
-    is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
+    # Verificar configuração de armazenamento usando função centralizada
+    from image_config import should_use_db_storage
+    must_use_db = should_use_db_storage()
     has_database_url = bool(os.environ.get('DATABASE_URL'))
-    must_use_db = use_db_storage or is_production or has_database_url
     
     # Tentar salvar no banco de dados primeiro
     try:

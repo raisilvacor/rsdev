@@ -54,11 +54,9 @@ def get_image_url(image_path):
     
     # Se for upload
     if is_upload:
-        # Verificar configuração de armazenamento
-        use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'
-        is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
-        has_database_url = bool(os.environ.get('DATABASE_URL'))
-        use_db = use_db_storage or is_production or has_database_url
+        # Verificar configuração de armazenamento usando função centralizada
+        from image_config import should_use_db_storage
+        use_db = should_use_db_storage()
         
         if use_db:
             # Em produção ou com DATABASE_URL: sempre usar /image/<key>

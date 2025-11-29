@@ -33,8 +33,8 @@ else:
 # Configuração de armazenamento de imagens
 # Em produção (Render), sempre usar banco de dados PostgreSQL
 # Em desenvolvimento, usar banco se DATABASE_URL estiver definido, senão usar filesystem
-has_database_url = bool(os.environ.get('DATABASE_URL'))
-app.config['USE_DB_IMAGE_STORAGE'] = is_production or has_database_url
+from image_config import should_use_db_storage
+app.config['USE_DB_IMAGE_STORAGE'] = should_use_db_storage()
 
 # Registrar blueprint do admin
 app.register_blueprint(admin_bp)

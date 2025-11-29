@@ -28,13 +28,11 @@ def save_image_to_db(image_file, image_key=None, category='images'):
     if not image_file or not image_file.filename:
         return None
     
-    # Verificar se deve usar banco de dados
-    use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'
-    is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
+    # Verificar se deve usar banco de dados usando função centralizada
+    from image_config import should_use_db_storage
+    must_use_db = should_use_db_storage()
     has_database_url = bool(os.environ.get('DATABASE_URL'))
-    must_use_db = use_db_storage or is_production or has_database_url
     
-    # Se deve usar banco mas não tem DATABASE_URL, tentar usar SQLite local
     # Se não deve usar banco e não tem DATABASE_URL, retornar None (fallback para arquivo)
     if not must_use_db and not has_database_url:
         # Em desenvolvimento sem DATABASE_URL e sem flag, não tentar salvar no banco
