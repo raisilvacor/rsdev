@@ -1,0 +1,222 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Conteúdo Geral{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-file-text"></i> Gerenciar Conteúdo do Site</h4>
+    
+    <form method="POST" enctype="multipart/form-data" id="contentForm">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mt-4 mb-3">Logo do Site</h5>
+                <div class="mb-3">
+                    <label class="form-label">Logo Padrão</label>
+                    {% if content_data.get('header') and content_data.header.get('logo') and content_data.header.logo.get('image_path') %}
+                    <div class="mb-2">
+                        {% set logo_path = content_data.header.logo.image_path %}
+                        <img src="{{ url_for('static', filename=logo_path) }}" 
+                             alt="Logo" 
+                             style="max-height: 60px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="alert alert-warning small mt-1" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i> Imagem não encontrada: {{ logo_path }}
+                        </div>
+                        <div class="small text-muted mt-1">Imagem atual: {{ logo_path }}</div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info small mb-2">
+                        <i class="bi bi-info-circle"></i> Nenhuma imagem definida ainda
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="image_header_logo" accept="image/*">
+                    <small class="text-muted">Tamanho recomendado: 223x50px</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Logo Inverso</label>
+                    {% if content_data.get('header') and content_data.header.get('logo_inverse') and content_data.header.logo_inverse.get('image_path') %}
+                    <div class="mb-2">
+                        {% set logo_inv_path = content_data.header.logo_inverse.image_path %}
+                        <img src="{{ url_for('static', filename=logo_inv_path) }}" 
+                             alt="Logo Inverso" 
+                             style="max-height: 60px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="alert alert-warning small mt-1" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i> Imagem não encontrada: {{ logo_inv_path }}
+                        </div>
+                        <div class="small text-muted mt-1">Imagem atual: {{ logo_inv_path }}</div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info small mb-2">
+                        <i class="bi bi-info-circle"></i> Nenhuma imagem definida ainda
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="image_header_logo_inverse" accept="image/*">
+                    <small class="text-muted">Tamanho recomendado: 223x50px</small>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mt-4 mb-3">Informações de Contato</h5>
+                <div class="mb-3">
+                    <label class="form-label">Telefone 1</label>
+                    {% set phone1 = content_data.get('contact', {}).get('phone_1', {}).get('content', '') if content_data.get('contact') and content_data.contact.get('phone_1') else '' %}
+                    <input type="text" class="form-control" name="content_contact_phone_1" 
+                           value="{{ phone1 }}"
+                           placeholder="+55 11 99999-9999">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telefone 2</label>
+                    {% set phone2 = content_data.get('contact', {}).get('phone_2', {}).get('content', '') if content_data.get('contact') and content_data.contact.get('phone_2') else '' %}
+                    <input type="text" class="form-control" name="content_contact_phone_2"
+                           value="{{ phone2 }}"
+                           placeholder="+55 11 99999-9999">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Endereço</label>
+                    {% set address = content_data.get('contact', {}).get('address', {}).get('content', '') if content_data.get('contact') and content_data.contact.get('address') else '' %}
+                    <input type="text" class="form-control" name="content_contact_address"
+                           value="{{ address }}"
+                           placeholder="Rua, Número, Cidade, Estado">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail 1</label>
+                    {% set email1 = content_data.get('contact', {}).get('email_1', {}).get('content', '') if content_data.get('contact') and content_data.contact.get('email_1') else '' %}
+                    <input type="email" class="form-control" name="content_contact_email_1"
+                           value="{{ email1 }}"
+                           placeholder="contato@exemplo.com">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail 2</label>
+                    {% set email2 = content_data.get('contact', {}).get('email_2', {}).get('content', '') if content_data.get('contact') and content_data.contact.get('email_2') else '' %}
+                    <input type="email" class="form-control" name="content_contact_email_2"
+                           value="{{ email2 }}"
+                           placeholder="info@exemplo.com">
+                </div>
+                
+                <hr class="my-4">
+                <h6 class="mb-3">Botão Flutuante WhatsApp</h6>
+                <div class="mb-3">
+                    {% set whatsapp_enabled = content_data.get('contact', {}).get('whatsapp_enabled', {}).get('content', '1') if content_data.get('contact') and content_data.contact.get('whatsapp_enabled') else '1' %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="content_contact_whatsapp_enabled" 
+                               id="whatsapp_enabled" value="1" {{ 'checked' if whatsapp_enabled == '1' else '' }}>
+                        <label class="form-check-label" for="whatsapp_enabled">
+                            Exibir botão flutuante do WhatsApp
+                        </label>
+                    </div>
+                    <small class="text-muted">Quando ativado, o botão aparecerá no canto inferior direito do site.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telefone para WhatsApp</label>
+                    {% set whatsapp_phone = content_data.get('contact', {}).get('whatsapp_phone', {}).get('content', 'phone_1') if content_data.get('contact') and content_data.contact.get('whatsapp_phone') else 'phone_1' %}
+                    <select class="form-select" name="content_contact_whatsapp_phone">
+                        <option value="phone_1" {{ 'selected' if whatsapp_phone == 'phone_1' else '' }}>Usar Telefone 1</option>
+                        <option value="phone_2" {{ 'selected' if whatsapp_phone == 'phone_2' else '' }}>Usar Telefone 2</option>
+                    </select>
+                    <small class="text-muted">Escolha qual telefone será usado no link do WhatsApp.</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-bullhorn"></i> Seção de Chamada para Ação (CTA)</h4>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">Imagem de Fundo</h5>
+                <div class="mb-3">
+                    <label class="form-label">Imagem Parallax de Fundo</label>
+                    {% if content_data.get('cta') and content_data.cta.get('background_image') and content_data.cta.background_image.get('image_path') %}
+                    <div class="mb-2">
+                        {% set cta_bg_path = content_data.cta.background_image.image_path %}
+                        <img src="{{ url_for('static', filename=cta_bg_path) }}" 
+                             alt="Imagem de Fundo CTA" 
+                             style="max-width: 100%; max-height: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="alert alert-warning small mt-1" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i> Imagem não encontrada
+                        </div>
+                        <div class="small text-muted mt-1">Imagem atual: {{ cta_bg_path }}</div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info small mb-2">
+                        <i class="bi bi-info-circle"></i> Usando imagem padrão
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="image_cta_background_image" accept="image/*">
+                    <small class="text-muted">Tamanho recomendado: 1770x550px</small>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mb-3">Textos</h5>
+                <div class="mb-3">
+                    <label class="form-label">Título</label>
+                    {% set cta_title = content_data.get('cta', {}).get('title', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('title') else 'Vamos Desenvolver Seu Próximo Grande Aplicativo!' %}
+                    <input type="text" class="form-control" name="content_cta_title" 
+                           value="{{ cta_title }}"
+                           placeholder="Vamos Desenvolver Seu Próximo Grande Aplicativo!">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descrição</label>
+                    {% set cta_description = content_data.get('cta', {}).get('description', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('description') else 'Você precisa de uma solução de software única para sua empresa? Sabemos como ajudá-lo!' %}
+                    <textarea class="form-control" name="content_cta_description" rows="2"
+                              placeholder="Você precisa de uma solução de software única para sua empresa? Sabemos como ajudá-lo!">{{ cta_description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Texto do Botão Principal</label>
+                    {% set cta_btn1_text = content_data.get('cta', {}).get('button1_text', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('button1_text') else 'Entre em Contato' %}
+                    <input type="text" class="form-control" name="content_cta_button1_text" 
+                           value="{{ cta_btn1_text }}"
+                           placeholder="Entre em Contato">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Link do Botão Principal</label>
+                    {% set cta_btn1_link = content_data.get('cta', {}).get('button1_link', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('button1_link') else '#modalCta' %}
+                    <input type="text" class="form-control" name="content_cta_button1_link" 
+                           value="{{ cta_btn1_link }}"
+                           placeholder="#modalCta">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Texto do Botão Secundário</label>
+                    {% set cta_btn2_text = content_data.get('cta', {}).get('button2_text', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('button2_text') else 'Saiba Mais' %}
+                    <input type="text" class="form-control" name="content_cta_button2_text" 
+                           value="{{ cta_btn2_text }}"
+                           placeholder="Saiba Mais">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Link do Botão Secundário</label>
+                    {% set cta_btn2_link = content_data.get('cta', {}).get('button2_link', {}).get('content', '') if content_data.get('cta') and content_data.cta.get('button2_link') else '#' %}
+                    <input type="text" class="form-control" name="content_cta_button2_link" 
+                           value="{{ cta_btn2_link }}"
+                           placeholder="#">
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="content-card">
+    <h5 class="mb-3">Slides do Carrossel</h5>
+    <p class="text-muted">Gerencie os slides do carrossel principal na página inicial.</p>
+    <a href="{{ url_for('admin.carousel') }}" class="btn btn-primary">
+        <i class="bi bi-images"></i> Gerenciar Slides do Carrossel
+    </a>
+</div>
+{% endblock %}

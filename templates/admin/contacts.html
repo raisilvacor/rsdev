@@ -1,0 +1,109 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Mensagens de Contato - Painel Admin{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h2 class="mb-4"><i class="bi bi-envelope"></i> Mensagens de Contato</h2>
+    
+    {% if messages %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Assunto</th>
+                    <th>Mensagem</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages %}
+                <tr class="{% if not msg.is_read %}table-warning{% endif %}">
+                    <td>{{ msg.id }}</td>
+                    <td><strong>{{ msg.name }}</strong></td>
+                    <td><a href="mailto:{{ msg.email }}">{{ msg.email }}</a></td>
+                    <td>{{ msg.phone or '-' }}</td>
+                    <td>{{ msg.subject or '-' }}</td>
+                    <td>
+                        {% if msg.message %}
+                            <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#messageModal{{ msg.id }}">
+                                Ver mensagem
+                            </button>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ msg.created_at[:19] if msg.created_at else '-' }}</td>
+                    <td>
+                        {% if msg.is_read %}
+                            <span class="badge bg-success">Lida</span>
+                        {% else %}
+                            <span class="badge bg-warning">Não lida</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" style="display: inline;">
+                            {% if msg.is_read %}
+                                <button type="submit" name="mark_unread" value="{{ msg.id }}" class="btn btn-sm btn-warning" title="Marcar como não lida">
+                                    <i class="bi bi-envelope"></i>
+                                </button>
+                            {% else %}
+                                <button type="submit" name="mark_read" value="{{ msg.id }}" class="btn btn-sm btn-success" title="Marcar como lida">
+                                    <i class="bi bi-envelope-check"></i>
+                                </button>
+                            {% endif %}
+                        </form>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta mensagem?');">
+                            <button type="submit" name="delete" value="{{ msg.id }}" class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                
+                <!-- Modal para exibir mensagem completa -->
+                {% if msg.message %}
+                <div class="modal fade" id="messageModal{{ msg.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Mensagem de {{ msg.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
+                                {% if msg.phone %}
+                                <p><strong>Telefone:</strong> {{ msg.phone }}</p>
+                                {% endif %}
+                                {% if msg.subject %}
+                                <p><strong>Assunto:</strong> {{ msg.subject }}</p>
+                                {% endif %}
+                                <hr>
+                                <p><strong>Mensagem:</strong></p>
+                                <p style="white-space: pre-wrap;">{{ msg.message }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Nenhuma mensagem de contato encontrada.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

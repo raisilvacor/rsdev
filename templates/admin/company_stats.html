@@ -1,0 +1,207 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Anos de Experiência e Estatísticas{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-bar-chart"></i> Anos de Experiência e Estatísticas</h4>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-3">Informações Principais</h5>
+                <div class="mb-3">
+                    <label class="form-label">Anos de Experiência (Número Grande)</label>
+                    <input type="number" class="form-control" name="years" 
+                           value="{{ stats.years if stats else '10' }}" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Título</label>
+                    <input type="text" class="form-control" name="title" 
+                           value="{{ stats.title if stats else 'Anos de Experiência' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control" name="description" rows="3">{{ stats.description if stats else '' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Texto do Botão</label>
+                    <input type="text" class="form-control" name="button_text" 
+                           value="{{ stats.button_text if stats else 'Entre em contato' }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Link do Botão</label>
+                    <input type="text" class="form-control" name="button_link" 
+                           value="{{ stats.button_link if stats else '#' }}">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mb-3">Estatísticas</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 1 - Número</label>
+                        <input type="text" class="form-control" name="stat1_number" 
+                               value="{{ stats.stat1_number if stats else '2' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 1 - Símbolo (ex: k)</label>
+                        <input type="text" class="form-control" name="stat1_symbol" 
+                               value="{{ stats.stat1_symbol if stats else 'k' }}">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Estatística 1 - Label</label>
+                        <input type="text" class="form-control" name="stat1_label" 
+                               value="{{ stats.stat1_label if stats else 'aplicativos desenvolvidos' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 2 - Número</label>
+                        <input type="text" class="form-control" name="stat2_number" 
+                               value="{{ stats.stat2_number if stats else '40' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 2 - Símbolo</label>
+                        <input type="text" class="form-control" name="stat2_symbol" 
+                               value="{{ stats.stat2_symbol if stats else '' }}">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Estatística 2 - Label</label>
+                        <input type="text" class="form-control" name="stat2_label" 
+                               value="{{ stats.stat2_label if stats else 'Consultores' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 3 - Número</label>
+                        <input type="text" class="form-control" name="stat3_number" 
+                               value="{{ stats.stat3_number if stats else '12' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 3 - Símbolo</label>
+                        <input type="text" class="form-control" name="stat3_symbol" 
+                               value="{{ stats.stat3_symbol if stats else '' }}">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Estatística 3 - Label</label>
+                        <input type="text" class="form-control" name="stat3_label" 
+                               value="{{ stats.stat3_label if stats else 'Prêmios conquistados' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 4 - Número</label>
+                        <input type="text" class="form-control" name="stat4_number" 
+                               value="{{ stats.stat4_number if stats else '160' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estatística 4 - Símbolo</label>
+                        <input type="text" class="form-control" name="stat4_symbol" 
+                               value="{{ stats.stat4_symbol if stats else '' }}">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Estatística 4 - Label</label>
+                        <input type="text" class="form-control" name="stat4_label" 
+                               value="{{ stats.stat4_label if stats else 'Funcionários' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="content-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-images"></i> Imagens de Clientes/Parceiros</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clientImageModal" onclick="newClientImage()">
+            <i class="bi bi-plus-circle"></i> Nova Imagem
+        </button>
+    </div>
+    
+    <div class="row">
+        {% for image in client_images %}
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <img src="{{ url_for('static', filename=image.image_path) }}" class="card-img-top" alt="{{ image.alt_text }}" style="height: 120px; object-fit: contain; padding: 10px;">
+                <div class="card-body">
+                    <p class="card-text small">{{ image.alt_text or 'Sem descrição' }}</p>
+                    <div class="btn-group btn-group-sm w-100">
+                        <button class="btn btn-warning" onclick="editClientImage({{ image.id }}, '{{ image.alt_text|replace("'", "\\'") }}', '{{ image.link_url|replace("'", "\\'") }}', {{ image.order_index }})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza?');">
+                            <input type="hidden" name="delete_client_image" value="{{ image.id }}">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal para adicionar/editar imagem de cliente -->
+<div class="modal fade" id="clientImageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clientImageModalTitle">Nova Imagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="clientImageForm">
+                <div class="modal-body">
+                    <input type="hidden" name="client_image_id" id="clientImageId">
+                    <div class="mb-3">
+                        <label class="form-label">Imagem (270x117px) *</label>
+                        <input type="file" class="form-control" name="client_image_file" accept="image/*" id="clientImageFile">
+                        <small class="text-muted">Tamanho recomendado: 270x117px</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Texto Alternativo</label>
+                        <input type="text" class="form-control" name="client_image_alt" id="clientImageAlt" placeholder="Nome do cliente">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Link (URL)</label>
+                        <input type="text" class="form-control" name="client_image_link" id="clientImageLink" placeholder="#">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" class="form-control" name="client_image_order" id="clientImageOrder" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newClientImage() {
+    document.getElementById('clientImageModalTitle').textContent = 'Nova Imagem';
+    document.getElementById('clientImageForm').reset();
+    document.getElementById('clientImageId').value = '';
+    document.getElementById('clientImageFile').required = true;
+}
+
+function editClientImage(id, alt, link, order) {
+    document.getElementById('clientImageModalTitle').textContent = 'Editar Imagem';
+    document.getElementById('clientImageId').value = id;
+    document.getElementById('clientImageAlt').value = alt;
+    document.getElementById('clientImageLink').value = link;
+    document.getElementById('clientImageOrder').value = order;
+    document.getElementById('clientImageFile').required = false;
+    new bootstrap.Modal(document.getElementById('clientImageModal')).show();
+}
+</script>
+{% endblock %}
+

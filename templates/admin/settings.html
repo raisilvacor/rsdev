@@ -1,0 +1,70 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Configurações{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-gear"></i> Configurações Gerais</h4>
+    
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mt-4 mb-3">Configurações de Email</h5>
+                <div class="mb-3">
+                    <label class="form-label">Usar SMTP</label>
+                    <select class="form-select" name="mail_use_smtp">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Servidor SMTP</label>
+                    <input type="text" class="form-control" name="mail_host" 
+                           value="{{ settings.get('mail_host', 'smtp.gmail.com') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Porta</label>
+                    <input type="number" class="form-control" name="mail_port" 
+                           value="{{ settings.get('mail_port', '465') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Usuário</label>
+                    <input type="text" class="form-control" name="mail_username" 
+                           value="{{ settings.get('mail_username', '') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Senha</label>
+                    <input type="password" class="form-control" name="mail_password" 
+                           value="{{ settings.get('mail_password', '') }}" placeholder="Deixe em branco para manter">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail Destinatário</label>
+                    <input type="email" class="form-control" name="mail_recipient" 
+                           value="{{ settings.get('mail_recipient', '') }}">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h5 class="mt-4 mb-3">Configurações do reCaptcha</h5>
+                <div class="mb-3">
+                    <label class="form-label">Site Key</label>
+                    <input type="text" class="form-control" name="recaptcha_site_key" 
+                           value="{{ settings.get('recaptcha_site_key', '') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Secret Key</label>
+                    <input type="text" class="form-control" name="recaptcha_secret_key" 
+                           value="{{ settings.get('recaptcha_secret_key', '') }}">
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Configurações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Gerenciar Rodapé{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-layout-text-window-reverse"></i> Configurações do Rodapé</h4>
+    
+    <form method="POST">
+        <h5 class="mt-4 mb-3">Links do Rodapé</h5>
+        <div id="footerLinks">
+            {% for link in footer_links %}
+            <div class="row mb-3 footer-link-item">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="footer_link_text[]" placeholder="Texto do link" value="{{ link.text }}">
+                </div>
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="footer_link[]" placeholder="URL do link" value="{{ link.url }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger w-100" onclick="removeLink(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary mb-4" onclick="addLink()">
+            <i class="bi bi-plus-circle"></i> Adicionar Link
+        </button>
+        
+        <h5 class="mt-4 mb-3">Redes Sociais do Rodapé</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-facebook"></i> Facebook</label>
+                <input type="url" class="form-control" name="social_facebook" 
+                       value="{% if footer_data.social_facebook %}{{ footer_data.social_facebook }}{% else %}https://facebook.com{% endif %}"
+                       placeholder="https://facebook.com/seu-perfil">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-twitter"></i> Twitter</label>
+                <input type="url" class="form-control" name="social_twitter" 
+                       value="{% if footer_data.social_twitter %}{{ footer_data.social_twitter }}{% else %}https://twitter.com{% endif %}"
+                       placeholder="https://twitter.com/seu-perfil">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-google"></i> Google Plus</label>
+                <input type="url" class="form-control" name="social_google" 
+                       value="{% if footer_data.social_google %}{{ footer_data.social_google }}{% else %}https://plus.google.com{% endif %}"
+                       placeholder="https://plus.google.com/seu-perfil">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-instagram"></i> Instagram</label>
+                <input type="url" class="form-control" name="social_instagram" 
+                       value="{% if footer_data.social_instagram %}{{ footer_data.social_instagram }}{% else %}https://instagram.com{% endif %}"
+                       placeholder="https://instagram.com/seu-perfil">
+            </div>
+        </div>
+        <small class="text-muted mb-3 d-block">Deixe em branco para ocultar o ícone da rede social correspondente.</small>
+        
+        <h5 class="mt-4 mb-3">Textos do Rodapé</h5>
+        <div class="mb-3">
+            <label class="form-label">Texto de Copyright</label>
+            <input type="text" class="form-control" name="copyright_text" 
+                   value="{% if footer_data.copyright_text %}{{ footer_data.copyright_text }}{% else %}RatherApp{% endif %}">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Texto de Direitos</label>
+            <input type="text" class="form-control" name="rights_text" 
+                   value="{% if footer_data.rights_text %}{{ footer_data.rights_text }}{% else %}Todos os direitos reservados.{% endif %}">
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addLink() {
+    const container = document.getElementById('footerLinks');
+    const div = document.createElement('div');
+    div.className = 'row mb-3 footer-link-item';
+    div.innerHTML = `
+        <div class="col-md-5">
+            <input type="text" class="form-control" name="footer_link_text[]" placeholder="Texto do link">
+        </div>
+        <div class="col-md-5">
+            <input type="text" class="form-control" name="footer_link[]" placeholder="URL do link">
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger w-100" onclick="removeLink(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeLink(btn) {
+    btn.closest('.footer-link-item').remove();
+}
+</script>
+{% endblock %}
+

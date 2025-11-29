@@ -1,0 +1,176 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Slides do Carrossel{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-images"></i> Slides do Carrossel</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#slideModal" onclick="newSlide()">
+            <i class="bi bi-plus-circle"></i> Novo Slide
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Imagem</th>
+                    <th>Título</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slide in slides %}
+                <tr>
+                    <td>
+                        {% if slide.image_path %}
+                        <img src="{{ url_for('static', filename=slide.image_path) }}" alt="{{ slide.title }}" style="width: 150px; height: 80px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                        <span class="text-muted">Sem imagem</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ slide.title }}</strong></td>
+                    <td>{{ slide.description[:60] if slide.description else '' }}...</td>
+                    <td>
+                        {% if slide.is_active %}
+                        <span class="badge bg-success">Ativo</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ slide.order_index }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-action" onclick="editSlide({{ slide.id }}, '{{ slide.title|replace("'", "\\'") }}', '{{ slide.description|replace("'", "\\'")|replace("\n", "\\n") }}', '{{ slide.button_text|replace("'", "\\'") }}', '{{ slide.button_link|replace("'", "\\'") }}', {{ slide.order_index }}, {{ slide.is_active }})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este slide?');">
+                            <input type="hidden" name="delete" value="{{ slide.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para adicionar/editar slide -->
+<div class="modal fade" id="slideModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="slideModalTitle">Novo Slide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="slideForm">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="slideId">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-control" name="title" id="slideTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="description" id="slideDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Texto do Botão</label>
+                                <input type="text" class="form-control" name="button_text" id="slideButtonText" value="Entre em contato">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Link do Botão</label>
+                                <input type="text" class="form-control" name="button_link" id="slideButtonLink" value="#modalCta">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Ordem</label>
+                                <input type="number" class="form-control" name="order_index" id="slideOrderIndex" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="slideIsActive" checked>
+                                    <label class="form-check-label" for="slideIsActive">
+                                        Slide ativo
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem de Fundo *</label>
+                        <input type="file" class="form-control" name="image" accept="image/*" id="slideImage">
+                        <small class="text-muted">Tamanho recomendado: 1770x742px. Deixe em branco para manter a imagem atual ao editar.</small>
+                    </div>
+                    <div id="currentImagePreview" class="mb-3" style="display: none;">
+                        <label class="form-label">Imagem Atual:</label>
+                        <div id="currentImageContainer"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newSlide() {
+    document.getElementById('slideModalTitle').textContent = 'Novo Slide';
+    document.getElementById('slideForm').reset();
+    document.getElementById('slideId').value = '';
+    document.getElementById('slideButtonText').value = 'Entre em contato';
+    document.getElementById('slideButtonLink').value = '#modalCta';
+    document.getElementById('slideOrderIndex').value = '0';
+    document.getElementById('slideIsActive').checked = true;
+    document.getElementById('currentImagePreview').style.display = 'none';
+    document.getElementById('slideImage').required = true;
+}
+
+function editSlide(id, title, description, buttonText, buttonLink, orderIndex, isActive) {
+    document.getElementById('slideModalTitle').textContent = 'Editar Slide';
+    document.getElementById('slideId').value = id;
+    document.getElementById('slideTitle').value = title;
+    document.getElementById('slideDescription').value = description.replace(/\\n/g, '\n');
+    document.getElementById('slideButtonText').value = buttonText;
+    document.getElementById('slideButtonLink').value = buttonLink;
+    document.getElementById('slideOrderIndex').value = orderIndex;
+    document.getElementById('slideIsActive').checked = isActive == 1;
+    document.getElementById('slideImage').required = false;
+    document.getElementById('currentImagePreview').style.display = 'none';
+    
+    // Buscar e mostrar imagem atual
+    const slides = document.querySelectorAll('tbody tr');
+    slides.forEach(row => {
+        const button = row.querySelector(`button[onclick*="editSlide(${id}"]`);
+        if (button) {
+            const img = row.querySelector('img');
+            if (img) {
+                document.getElementById('currentImagePreview').style.display = 'block';
+                document.getElementById('currentImageContainer').innerHTML = '<img src="' + img.src + '" style="max-width: 100%; max-height: 200px; border-radius: 4px;">';
+            }
+        }
+    });
+    
+    new bootstrap.Modal(document.getElementById('slideModal')).show();
+}
+</script>
+{% endblock %}
+

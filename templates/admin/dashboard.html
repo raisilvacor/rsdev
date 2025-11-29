@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="content-card text-center">
+            <i class="bi bi-folder" style="font-size: 3rem; color: #3498db;"></i>
+            <h3 class="mt-3">{{ projects_count }}</h3>
+            <p class="text-muted">Projetos</p>
+            <a href="{{ url_for('admin.projects') }}" class="btn btn-sm btn-primary">Gerenciar</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="content-card text-center">
+            <i class="bi bi-briefcase" style="font-size: 3rem; color: #2ecc71;"></i>
+            <h3 class="mt-3">{{ services_count }}</h3>
+            <p class="text-muted">Serviços</p>
+            <a href="{{ url_for('admin.services') }}" class="btn btn-sm btn-success">Gerenciar</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="content-card text-center">
+            <i class="bi bi-file-text" style="font-size: 3rem; color: #e74c3c;"></i>
+            <h3 class="mt-3">{{ posts_count }}</h3>
+            <p class="text-muted">Posts do Blog</p>
+            <a href="#" class="btn btn-sm btn-danger">Gerenciar</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="content-card text-center">
+            <i class="bi bi-tag" style="font-size: 3rem; color: #f39c12;"></i>
+            <h3 class="mt-3">{{ pricing_count }}</h3>
+            <p class="text-muted">Planos de Preço</p>
+            <a href="{{ url_for('admin.pricing') }}" class="btn btn-sm btn-warning">Gerenciar</a>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-info-circle"></i> Bem-vindo ao Painel Administrativo</h4>
+    <p>Use o menu lateral para navegar e gerenciar diferentes seções do seu site:</p>
+    <ul>
+        <li><strong>Conteúdo Geral:</strong> Gerencie textos, logos e imagens principais</li>
+        <li><strong>Projetos:</strong> Adicione, edite ou remova projetos do portfólio</li>
+        <li><strong>Serviços:</strong> Gerencie os serviços oferecidos</li>
+        <li><strong>Preços:</strong> Configure os planos de preços</li>
+        <li><strong>Rodapé:</strong> Personalize links e textos do rodapé</li>
+        <li><strong>Configurações:</strong> Ajuste configurações gerais do site</li>
+    </ul>
+</div>
+{% endblock %}
+

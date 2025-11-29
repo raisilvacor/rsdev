@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-people"></i> Gerenciar Usuários</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal" onclick="clearUserForm()">
+            <i class="bi bi-plus-circle"></i> Novo Usuário
+        </button>
+    </div>
+    
+    {% if users %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome de Usuário</th>
+                    <th>Data de Criação</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.created_at if user.created_at else '-' }}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-warning me-2" 
+                                data-bs-toggle="modal" data-bs-target="#userModal"
+                                onclick="editUser({{ user.id }}, '{{ user.username }}')">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                        {% if user.id != current_user_id %}
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ user.username }}? Esta ação não pode ser desfeita.');">
+                            <input type="hidden" name="delete" value="{{ user.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-sm btn-secondary" disabled title="Não é possível excluir seu próprio usuário">
+                            <i class="bi bi-trash"></i> Excluir
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Nenhum usuário cadastrado ainda.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Criar/Editar Usuário -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalLabel">Novo Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="userForm">
+                <div class="modal-body">
+                    <input type="hidden" name="user_id" id="user_id" value="">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nome de Usuário <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" required 
+                               placeholder="Digite o nome de usuário" autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha <span class="text-danger" id="password_required">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Deixe em branco para manter a senha atual (ao editar)" autocomplete="new-password">
+                        <small class="text-muted">Mínimo de 6 caracteres. Ao editar, deixe em branco para manter a senha atual.</small>
+                    </div>
+                    <div class="mb-3" id="password_confirm_div">
+                        <label for="password_confirm" class="form-label">Confirmar Senha <span class="text-danger" id="password_confirm_required">*</span></label>
+                        <input type="password" class="form-control" id="password_confirm" name="password_confirm" 
+                               placeholder="Digite a senha novamente" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function clearUserForm() {
+    document.getElementById('userForm').reset();
+    document.getElementById('user_id').value = '';
+    document.getElementById('userModalLabel').textContent = 'Novo Usuário';
+    document.getElementById('password').required = true;
+    document.getElementById('password_confirm').required = true;
+    document.getElementById('password_confirm_div').style.display = 'block';
+    document.getElementById('password_required').style.display = 'inline';
+    document.getElementById('password_confirm_required').style.display = 'inline';
+    
+    // Remover listeners anteriores
+    const passwordField = document.getElementById('password');
+    const newPasswordField = passwordField.cloneNode(true);
+    passwordField.parentNode.replaceChild(newPasswordField, passwordField);
+}
+
+function editUser(id, username) {
+    document.getElementById('user_id').value = id;
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = '';
+    document.getElementById('password_confirm').value = '';
+    document.getElementById('userModalLabel').textContent = 'Editar Usuário';
+    document.getElementById('password').required = false;
+    document.getElementById('password_confirm').required = false;
+    document.getElementById('password_confirm_div').style.display = 'none';
+    document.getElementById('password_required').style.display = 'none';
+    document.getElementById('password_confirm_required').style.display = 'none';
+    
+    // Mostrar campo de confirmação quando digitar senha
+    const passwordField = document.getElementById('password');
+    passwordField.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            document.getElementById('password_confirm_div').style.display = 'block';
+            document.getElementById('password_confirm').required = true;
+            document.getElementById('password_confirm_required').style.display = 'inline';
+        } else {
+            document.getElementById('password_confirm_div').style.display = 'none';
+            document.getElementById('password_confirm').value = '';
+            document.getElementById('password_confirm').required = false;
+            document.getElementById('password_confirm_required').style.display = 'none';
+        }
+    });
+}
+
+document.getElementById('userForm').addEventListener('submit', function(e) {
+    const userId = document.getElementById('user_id').value;
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('password_confirm').value;
+    
+    // Se for novo usuário, senha é obrigatória
+    if (!userId) {
+        if (!password || password.length < 6) {
+            e.preventDefault();
+            alert('A senha é obrigatória e deve ter no mínimo 6 caracteres.');
+            return false;
+        }
+        
+        if (password !== passwordConfirm) {
+            e.preventDefault();
+            alert('As senhas não coincidem.');
+            return false;
+        }
+    } else {
+        // Ao editar, se preencheu senha, precisa validar
+        if (password) {
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('A senha deve ter no mínimo 6 caracteres.');
+                return false;
+            }
+            
+            if (password !== passwordConfirm) {
+                e.preventDefault();
+                alert('As senhas não coincidem.');
+                return false;
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
+

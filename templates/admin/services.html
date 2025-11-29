@@ -1,0 +1,137 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Gerenciar Serviços{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-briefcase"></i> Serviços</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="newService()">
+            <i class="bi bi-plus-circle"></i> Novo Serviço
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Descrição</th>
+                    <th>Ícone</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td><strong>{{ service.title }}</strong></td>
+                    <td>{{ service.description[:50] if service.description else '' }}...</td>
+                    <td><i class="{{ service.icon_class }}"></i> {{ service.icon_class }}</td>
+                    <td>{{ service.order_index }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-action" onclick="editService({{ service.id }}, '{{ service.title|replace("'", "\\'") }}', '{{ service.description|replace("'", "\\'") }}', '{{ service.icon_class }}', {{ service.order_index }})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este serviço?');">
+                            <input type="hidden" name="delete" value="{{ service.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <h4 class="mb-4"><i class="bi bi-image"></i> Imagem da Seção de Serviços</h4>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Imagem Lateral (415x592)</label>
+            {% if services_section_image %}
+            <div class="mb-2">
+                <img src="{{ url_for('static', filename=services_section_image) }}" 
+                     alt="Imagem Seção Serviços" 
+                     style="max-width: 200px; max-height: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div class="alert alert-warning small mt-1" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i> Imagem não encontrada
+                </div>
+                <div class="small text-muted mt-1">Imagem atual: {{ services_section_image }}</div>
+            </div>
+            {% else %}
+            <div class="alert alert-info small mb-2">
+                <i class="bi bi-info-circle"></i> Nenhuma imagem definida ainda
+            </div>
+            {% endif %}
+            <input type="file" class="form-control" name="services_section_image" accept="image/*">
+            <small class="text-muted">Tamanho recomendado: 415x592px</small>
+        </div>
+        <input type="hidden" name="update_section_image" value="1">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Salvar Imagem
+        </button>
+    </form>
+</div>
+
+<!-- Modal para adicionar/editar serviço -->
+<div class="modal fade" id="serviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serviceModalTitle">Novo Serviço</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="serviceForm">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="serviceId">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-control" name="title" id="serviceTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="description" id="serviceDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Classe do Ícone</label>
+                        <input type="text" class="form-control" name="icon_class" id="serviceIconClass" placeholder="Ex: linearicons-phone-in-out">
+                        <small class="text-muted">Use classes de ícones do tema (linearicons, fa, etc.)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" class="form-control" name="order_index" id="serviceOrderIndex" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newService() {
+    document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceId').value = '';
+}
+
+function editService(id, title, description, iconClass, orderIndex) {
+    document.getElementById('serviceModalTitle').textContent = 'Editar Serviço';
+    document.getElementById('serviceId').value = id;
+    document.getElementById('serviceTitle').value = title;
+    document.getElementById('serviceDescription').value = description;
+    document.getElementById('serviceIconClass').value = iconClass;
+    document.getElementById('serviceOrderIndex').value = orderIndex;
+    new bootstrap.Modal(document.getElementById('serviceModal')).show();
+}
+</script>
+{% endblock %}
+

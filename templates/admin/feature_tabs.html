@@ -1,0 +1,186 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Abas "Obtenha Mais Conosco"{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-folder2-open"></i> Abas "Obtenha Mais Conosco"</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tabModal" onclick="newTab()">
+            <i class="bi bi-plus-circle"></i> Nova Aba
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Conteúdo</th>
+                    <th>Status</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tab in tabs %}
+                <tr>
+                    <td><strong>{{ tab.title }}</strong></td>
+                    <td>{{ tab.content[:60] if tab.content else '' }}...</td>
+                    <td>
+                        {% if tab.is_active %}
+                        <span class="badge bg-success">Ativa</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inativa</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ tab.order_index }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-action" onclick="editTab({{ tab.id }}, '{{ tab.title|replace("'", "\\'") }}', '{{ tab.content|replace("'", "\\'")|replace("\n", "\\n") }}', '{{ tab.button1_text|replace("'", "\\'") }}', '{{ tab.button1_link|replace("'", "\\'") }}', '{{ tab.button2_text|replace("'", "\\'") }}', '{{ tab.button2_link|replace("'", "\\'") }}', {{ tab.order_index }}, {{ tab.is_active }})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta aba?');">
+                            <input type="hidden" name="delete" value="{{ tab.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <h4 class="mb-4"><i class="bi bi-image"></i> Imagens do Carrossel Lateral</h4>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Imagens (313x580px)</label>
+            <p class="text-muted">Adicione múltiplas imagens para o carrossel lateral. Tamanho recomendado: 313x580px</p>
+            <input type="file" class="form-control" name="feature_images[]" accept="image/*" multiple>
+            <small class="text-muted">Você pode selecionar várias imagens de uma vez</small>
+        </div>
+        <button type="submit" name="upload_feature_images" class="btn btn-primary">
+            <i class="bi bi-upload"></i> Fazer Upload das Imagens
+        </button>
+    </form>
+    
+    <div class="row mt-4">
+        {% for img in feature_images %}
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <img src="{{ url_for('static', filename=img) }}" class="card-img-top" alt="Feature" style="height: 200px; object-fit: contain; padding: 10px;">
+                <div class="card-body">
+                    <form method="POST" onsubmit="return confirm('Tem certeza?');">
+                        <input type="hidden" name="delete_feature_image" value="{{ img }}">
+                        <button type="submit" class="btn btn-sm btn-danger w-100">
+                            <i class="bi bi-trash"></i> Remover
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal para adicionar/editar aba -->
+<div class="modal fade" id="tabModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tabModalTitle">Nova Aba</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="tabForm">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="tabId">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-control" name="title" id="tabTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Conteúdo</label>
+                        <textarea class="form-control" name="content" id="tabContent" rows="4"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Texto do Botão 1</label>
+                                <input type="text" class="form-control" name="button1_text" id="tabButton1Text" value="Entre em contato">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Link do Botão 1</label>
+                                <input type="text" class="form-control" name="button1_link" id="tabButton1Link" value="#modalCta">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Texto do Botão 2</label>
+                                <input type="text" class="form-control" name="button2_text" id="tabButton2Text" value="Saiba Mais">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Link do Botão 2</label>
+                                <input type="text" class="form-control" name="button2_link" id="tabButton2Link" value="#">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Ordem</label>
+                                <input type="number" class="form-control" name="order_index" id="tabOrderIndex" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="tabIsActive" checked>
+                                    <label class="form-check-label" for="tabIsActive">
+                                        Aba ativa
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newTab() {
+    document.getElementById('tabModalTitle').textContent = 'Nova Aba';
+    document.getElementById('tabForm').reset();
+    document.getElementById('tabId').value = '';
+    document.getElementById('tabButton1Text').value = 'Entre em contato';
+    document.getElementById('tabButton1Link').value = '#modalCta';
+    document.getElementById('tabButton2Text').value = 'Saiba Mais';
+    document.getElementById('tabButton2Link').value = '#';
+    document.getElementById('tabOrderIndex').value = '0';
+    document.getElementById('tabIsActive').checked = true;
+}
+
+function editTab(id, title, content, btn1Text, btn1Link, btn2Text, btn2Link, orderIndex, isActive) {
+    document.getElementById('tabModalTitle').textContent = 'Editar Aba';
+    document.getElementById('tabId').value = id;
+    document.getElementById('tabTitle').value = title;
+    document.getElementById('tabContent').value = content.replace(/\\n/g, '\n');
+    document.getElementById('tabButton1Text').value = btn1Text;
+    document.getElementById('tabButton1Link').value = btn1Link;
+    document.getElementById('tabButton2Text').value = btn2Text;
+    document.getElementById('tabButton2Link').value = btn2Link;
+    document.getElementById('tabOrderIndex').value = orderIndex;
+    document.getElementById('tabIsActive').checked = isActive == 1;
+    new bootstrap.Modal(document.getElementById('tabModal')).show();
+}
+</script>
+{% endblock %}
+

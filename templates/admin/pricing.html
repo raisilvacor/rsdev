@@ -1,0 +1,137 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Gerenciar Preços{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-tag"></i> Planos de Preço</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pricingModal" onclick="newPricing()">
+            <i class="bi bi-plus-circle"></i> Novo Plano
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Recursos</th>
+                    <th>Popular</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if pricing_list %}
+                    {% for plan in pricing_list %}
+                    <tr>
+                        <td><strong>{{ plan.name }}</strong></td>
+                        <td>${{ "%.2f"|format(plan.price) }}</td>
+                        <td>{{ plan.features[:50] if plan.features else '' }}...</td>
+                        <td>
+                            {% if plan.is_popular %}
+                            <span class="badge bg-success">Sim</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Não</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ plan.order_index }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning btn-action" onclick="editPricing({{ plan.id }}, '{{ plan.name|replace("'", "\\'") }}', {{ plan.price }}, '{{ plan.features|replace("'", "\\'")|replace("\n", "\\n") if plan.features else "" }}', {{ plan.is_popular }}, {{ plan.order_index }})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este plano?');">
+                                <input type="hidden" name="delete" value="{{ plan.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">Nenhum plano cadastrado ainda.</p>
+                            <p class="small">Clique em "Novo Plano" para adicionar um plano de preço.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para adicionar/editar plano -->
+<div class="modal fade" id="pricingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pricingModalTitle">Novo Plano</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="pricingForm">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="pricingId">
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Plano *</label>
+                        <input type="text" class="form-control" name="name" id="pricingName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Preço *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="price" id="pricingPrice" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Recursos (um por linha)</label>
+                        <textarea class="form-control" name="features" id="pricingFeatures" rows="5" placeholder="Recurso 1&#10;Recurso 2&#10;Recurso 3"></textarea>
+                        <small class="text-muted">Digite cada recurso em uma nova linha</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_popular" id="pricingIsPopular">
+                            <label class="form-check-label" for="pricingIsPopular">
+                                Marcar como plano popular
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ordem</label>
+                        <input type="number" class="form-control" name="order_index" id="pricingOrderIndex" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newPricing() {
+    document.getElementById('pricingModalTitle').textContent = 'Novo Plano';
+    document.getElementById('pricingForm').reset();
+    document.getElementById('pricingId').value = '';
+    document.getElementById('pricingIsPopular').checked = false;
+}
+
+function editPricing(id, name, price, features, isPopular, orderIndex) {
+    document.getElementById('pricingModalTitle').textContent = 'Editar Plano';
+    document.getElementById('pricingId').value = id;
+    document.getElementById('pricingName').value = name;
+    document.getElementById('pricingPrice').value = price;
+    document.getElementById('pricingFeatures').value = features.replace(/\\n/g, '\n');
+    document.getElementById('pricingIsPopular').checked = isPopular == 1;
+    document.getElementById('pricingOrderIndex').value = orderIndex;
+    new bootstrap.Modal(document.getElementById('pricingModal')).show();
+}
+</script>
+{% endblock %}
+

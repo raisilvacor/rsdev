@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html class="wide wow-animation" lang="pt-BR">
+  <head>
+    <title>Início</title>
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <!-- Favicon usando Logo Inverso -->
+    {% if site_content.get('header') and site_content.header.get('logo_inverse') and site_content.header.logo_inverse.get('image_path') %}
+      {% set favicon_path = site_content.header.logo_inverse.image_path %}
+      {% set favicon_lower = favicon_path|lower %}
+      {% if '.svg' in favicon_lower %}
+        <link rel="icon" href="{{ url_for('static', filename=favicon_path) }}" type="image/svg+xml">
+      {% elif '.png' in favicon_lower %}
+        <link rel="icon" href="{{ url_for('static', filename=favicon_path) }}" type="image/png">
+      {% elif '.ico' in favicon_lower %}
+        <link rel="icon" href="{{ url_for('static', filename=favicon_path) }}" type="image/x-icon">
+      {% else %}
+        <link rel="icon" href="{{ url_for('static', filename=favicon_path) }}" type="image/x-icon">
+      {% endif %}
+      <link rel="shortcut icon" href="{{ url_for('static', filename=favicon_path) }}">
+      <link rel="apple-touch-icon" href="{{ url_for('static', filename=favicon_path) }}">
+    {% else %}
+      <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+      <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    {% endif %}
+    <!-- Stylesheets-->
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Poppins:400,500,600%7CTeko:300,400,500%7CMaven+Pro:500">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>.ie-panel{display: none;background: #212121;padding: 10px 0;box-shadow: 3px 3px 5px 0 rgba(0,0,0,.3);clear: both;text-align:center;position: relative;z-index: 1;} html.ie-10 .ie-panel, html.lt-ie-10 .ie-panel {display: block;}
+    :root {
+      --banner-bg-02-1x: url('{{ url_for('static', filename='images/banner/banner-bg-02-1920x60.jpg') }}');
+      --banner-bg-02-2x: url('{{ url_for('static', filename='images/banner/banner-bg-02-3840x120.jpg') }}');
+      --banner-bg-01-1x: url('{{ url_for('static', filename='images/banner/banner-bg-01-1920x310.jpg') }}');
+      --banner-bg-01-2x: url('{{ url_for('static', filename='images/banner/banner-bg-01-3840x620.jpg') }}');
+    }
+    </style>
+  </head>
+  <body>
+    <div class="ie-panel"><a href="http://windows.microsoft.com/en-US/internet-explorer/"><img src="{{ url_for('static', filename='images/ie8-panel/warning_bar_0000_us.jpg') }}" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today."></a></div>
+    <div class="preloader">
+      <div class="preloader-body">
+        <div class="cssload-container"><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+    <div class="page">
+      <div id="home">
+        <!-- Top Banner--><a class="section section-banner text-center d-none d-xl-block" href="https://www.templatemonster.com/intense-multipurpose-html-template.html" style="background-image: var(--banner-bg-02-1x); background-image: -webkit-image-set(var(--banner-bg-02-1x) 1x, var(--banner-bg-02-2x) 2x);" target="_blank"></a>
+        <!-- Page Header-->
+        <header class="section page-header">
+          <!-- RD Navbar-->
+          <div class="rd-navbar-wrap">
+            <nav class="rd-navbar rd-navbar-classic" data-layout="rd-navbar-fixed" data-sm-layout="rd-navbar-fixed" data-md-layout="rd-navbar-fixed" data-md-device-layout="rd-navbar-fixed" data-lg-layout="rd-navbar-static" data-lg-device-layout="rd-navbar-fixed" data-xl-layout="rd-navbar-static" data-xl-device-layout="rd-navbar-static" data-xxl-layout="rd-navbar-static" data-xxl-device-layout="rd-navbar-static" data-lg-stick-up-offset="46px" data-xl-stick-up-offset="46px" data-xxl-stick-up-offset="46px" data-lg-stick-up="true" data-xl-stick-up="true" data-xxl-stick-up="true">
+              <div class="rd-navbar-main-outer">
+                <div class="rd-navbar-main">
+                  <!-- RD Navbar Panel-->
+                  <div class="rd-navbar-panel">
+                    <!-- RD Navbar Toggle-->
+                    <button class="rd-navbar-toggle" data-rd-navbar-toggle=".rd-navbar-nav-wrap"><span></span></button>
+                    <!-- RD Navbar Brand-->
+                    <div class="rd-navbar-brand"><a class="brand" href="{{ url_for('index') }}">
+                      {% if site_content.get('header') and site_content.header.get('logo') and site_content.header.logo.get('image_path') %}
+                        <img src="{{ url_for('static', filename=site_content.header.logo.image_path) }}" alt="" width="223" height="50"/>
+                      {% else %}
+                        <img src="{{ url_for('static', filename='images/logo-default-223x50.png') }}" alt="" width="223" height="50"/>
+                      {% endif %}
+                    </a></div>
+                  </div>
+                  <div class="rd-navbar-main-element">
+                    <div class="rd-navbar-nav-wrap">
+                      <!-- RD Navbar Share-->
+                      <div class="rd-navbar-share fl-bigmug-line-share27" data-rd-navbar-toggle=".rd-navbar-share-list">
+                        <ul class="list-inline rd-navbar-share-list">
+                          <li class="rd-navbar-share-list-item"><a class="icon fa fa-facebook" href="#"></a></li>
+                          <li class="rd-navbar-share-list-item"><a class="icon fa fa-twitter" href="#"></a></li>
+                          <li class="rd-navbar-share-list-item"><a class="icon fa fa-google-plus" href="#"></a></li>
+                          <li class="rd-navbar-share-list-item"><a class="icon fa fa-instagram" href="#"></a></li>
+                        </ul>
+                      </div>
+                      <ul class="rd-navbar-nav">
+                        <li class="rd-nav-item active"><a class="rd-nav-link" href="#home">Início</a></li>
+                        <li class="rd-nav-item"><a class="rd-nav-link" href="#services">Serviços</a></li>
+                        <li class="rd-nav-item"><a class="rd-nav-link" href="#projects">Projetos</a></li>
+                        <li class="rd-nav-item"><a class="rd-nav-link" href="#contacts">Contato</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </nav>
+          </div>
+        </header>
+
+        <!-- Swiper-->
+        <section class="section swiper-container swiper-slider swiper-slider-classic" data-loop="true" data-autoplay="4859" data-simulate-touch="true" data-direction="vertical" data-nav="false">
+          <div class="swiper-wrapper text-center">
+            {% if carousel_slides %}
+              {% for slide in carousel_slides %}
+              <div class="swiper-slide" data-slide-bg="{{ url_for('static', filename=slide.image_path.replace('\\', '/')) }}">
+                <div class="swiper-slide-caption section-md">
+                  <div class="container">
+                    <h1 data-caption-animate="fadeInLeft" data-caption-delay="0">{{ slide.title }}</h1>
+                    {% if slide.description %}
+                    <p class="text-width-large" data-caption-animate="fadeInRight" data-caption-delay="100">{{ slide.description }}</p>
+                    {% endif %}
+                    <a class="button button-primary button-ujarak" href="{{ slide.button_link if slide.button_link else '#' }}" data-caption-animate="fadeInUp" data-caption-delay="200">{{ slide.button_text if slide.button_text else 'Entre em contato' }}</a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <!-- Slides padrão caso não haja slides cadastrados -->
+              <div class="swiper-slide" data-slide-bg="{{ url_for('static', filename='images/slider-1-slide-2-1770x742.jpg') }}">
+                <div class="swiper-slide-caption section-md">
+                  <div class="container">
+                    <h1 data-caption-animate="fadeInLeft" data-caption-delay="0">Desenvolvimento de Aplicativos Mobile</h1>
+                    <p class="text-width-large" data-caption-animate="fadeInRight" data-caption-delay="100">Desde nossa fundação, temos entregado soluções de software de alta qualidade e sustentáveis para propósitos corporativos de empresas em todo o mundo.</p>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+          <!-- Swiper Pagination-->
+          <div class="swiper-pagination__module">
+            <div class="swiper-pagination__fraction"><span class="swiper-pagination__fraction-index">00</span><span class="swiper-pagination__fraction-divider">/</span><span class="swiper-pagination__fraction-count">00</span></div>
+            <div class="swiper-pagination__divider"></div>
+            <div class="swiper-pagination"></div>
+          </div>
+        </section>
+
+      </div>
+      <!-- Ver todos os serviços-->
+      <section class="section section-sm section-first bg-default text-center" id="services">
+        <div class="container">
+          <div class="row row-30 justify-content-center">
+            <div class="col-md-7 col-lg-5 col-xl-6 text-lg-left wow fadeInUp">
+              {% if site_content.get('services') and site_content.services.get('section_image') and site_content.services.section_image.get('image_path') %}
+                <img src="{{ url_for('static', filename=site_content.services.section_image.image_path.replace('\\', '/')) }}" alt="" width="415" height="592"/>
+              {% else %}
+                <img src="{{ url_for('static', filename='images/index-1-415x592.png') }}" alt="" width="415" height="592"/>
+              {% endif %}
+            </div>
+            <div class="col-lg-7 col-xl-6">
+              <div class="row row-30">
+                {% if services %}
+                  <div class="col-sm-6 wow fadeInRight">
+                    <article class="box-icon-modern box-icon-modern-custom">
+                      <div>
+                        <h3 class="box-icon-modern-big-title">O Que Oferecemos</h3>
+                        <div class="box-icon-modern-decor"></div>
+                      </div>
+                    </article>
+                  </div>
+                  {% for service in services %}
+                  <div class="col-sm-6 wow fadeInRight" data-wow-delay="{{ (loop.index * 0.1) }}s">
+                    <article class="box-icon-modern box-icon-modern-2">
+                      {% if service.icon_class %}
+                      <div class="box-icon-modern-icon {{ service.icon_class }}"></div>
+                      {% endif %}
+                      <h5 class="box-icon-modern-title">
+                        <a href="#">{{ service.title|upper|replace(' ', '<br>')|safe }}</a>
+                      </h5>
+                      <div class="box-icon-modern-decor"></div>
+                      {% if service.description %}
+                      <p class="box-icon-modern-text">{{ service.description }}</p>
+                      {% endif %}
+                    </article>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <!-- Serviços padrão caso não haja serviços cadastrados -->
+                  <div class="col-sm-6 wow fadeInRight">
+                    <article class="box-icon-modern box-icon-modern-custom">
+                      <div>
+                        <h3 class="box-icon-modern-big-title">O Que Oferecemos</h3>
+                        <div class="box-icon-modern-decor"></div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="col-sm-6 wow fadeInRight" data-wow-delay=".1s">
+                    <article class="box-icon-modern box-icon-modern-2">
+                      <div class="box-icon-modern-icon linearicons-phone-in-out"></div>
+                      <h5 class="box-icon-modern-title"><a href="#">SOLUÇÕES<br>CORPORATIVAS</a></h5>
+                      <div class="box-icon-modern-decor"></div>
+                      <p class="box-icon-modern-text">Precisa de software específico para sua empresa? Estamos prontos para desenvolvê-lo!</p>
+                    </article>
+                  </div>
+                  <div class="col-sm-6 wow fadeInRight" data-wow-delay=".2s">
+                    <article class="box-icon-modern box-icon-modern-2">
+                      <div class="box-icon-modern-icon linearicons-headset"></div>
+                      <h5 class="box-icon-modern-title"><a href="#">SOLUÇÕES PARA<br>CALL CENTER</a></h5>
+                      <div class="box-icon-modern-decor"></div>
+                      <p class="box-icon-modern-text">Nossos especialistas fornecem produtos personalizados de qualquer complexidade para call centers.</p>
+                    </article>
+                  </div>
+                  <div class="col-sm-6 wow fadeInRight" data-wow-delay=".3s">
+                    <article class="box-icon-modern box-icon-modern-2">
+                      <div class="box-icon-modern-icon linearicons-outbox"></div>
+                      <h5 class="box-icon-modern-title"><a href="#">DESENVOLVIMENTO<br>NA NUVEM</a></h5>
+                      <div class="box-icon-modern-decor"></div>
+                      <p class="box-icon-modern-text">Também podemos oferecer soluções confiáveis de desenvolvimento na nuvem.</p>
+                    </article>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chamada para ação-->
+      <section class="section section-fluid bg-default">
+        {% set cta_bg = site_content.get('cta', {}).get('background_image', {}).get('image_path', 'images/parallax-1.jpg') if site_content.get('cta') and site_content.cta.get('background_image') else 'images/parallax-1.jpg' %}
+        {% set cta_title = site_content.get('cta', {}).get('title', {}).get('content', 'Vamos Desenvolver Seu Próximo Grande Aplicativo!') if site_content.get('cta') and site_content.cta.get('title') else 'Vamos Desenvolver Seu Próximo Grande Aplicativo!' %}
+        {% set cta_desc = site_content.get('cta', {}).get('description', {}).get('content', 'Você precisa de uma solução de software única para sua empresa? Sabemos como ajudá-lo!') if site_content.get('cta') and site_content.cta.get('description') else 'Você precisa de uma solução de software única para sua empresa? Sabemos como ajudá-lo!' %}
+        {% set cta_btn1_text = site_content.get('cta', {}).get('button1_text', {}).get('content', 'Entre em Contato') if site_content.get('cta') and site_content.cta.get('button1_text') else 'Entre em Contato' %}
+        {% set cta_btn1_link = site_content.get('cta', {}).get('button1_link', {}).get('content', '#') if site_content.get('cta') and site_content.cta.get('button1_link') else '#' %}
+        {% set cta_btn2_text = site_content.get('cta', {}).get('button2_text', {}).get('content', 'Saiba Mais') if site_content.get('cta') and site_content.cta.get('button2_text') else 'Saiba Mais' %}
+        {% set cta_btn2_link = site_content.get('cta', {}).get('button2_link', {}).get('content', '#') if site_content.get('cta') and site_content.cta.get('button2_link') else '#' %}
+        <div class="parallax-container" data-parallax-img="{{ url_for('static', filename=cta_bg.replace('\\', '/')) }}">
+          <div class="parallax-content section-xl context-dark bg-overlay-68 bg-mobile-overlay">
+            <div class="container">
+              <div class="row row-30 justify-content-end text-right">
+                <div class="col-sm-7">
+                  <h3 class="wow fadeInLeft">{{ cta_title }}</h3>
+                  <p>{{ cta_desc }}</p>
+                  <div class="group-sm group-middle group justify-content-end"><a class="button button-primary button-ujarak" href="{{ cta_btn1_link }}">{{ cta_btn1_text }}</a><a class="button button-white-outline button-ujarak" href="{{ cta_btn2_link }}">{{ cta_btn2_text }}</a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projetos Recentes-->
+      <section class="section section-sm section-fluid bg-default text-center" id="projects">
+        <div class="container-fluid">
+          {% set projects_title = projects_section.get('title', {}).get('content', 'Projetos Recentes') if projects_section.get('title') else 'Projetos Recentes' %}
+          {% set projects_description = projects_section.get('description', {}).get('content', 'Em nosso portfólio, você pode navegar pelos produtos mais recentes desenvolvidos para nossos clientes para diferentes propósitos corporativos. Nossa equipe qualificada de designers de interface e desenvolvedores de software está sempre pronta para criar algo único para você.') if projects_section.get('description') else 'Em nosso portfólio, você pode navegar pelos produtos mais recentes desenvolvidos para nossos clientes para diferentes propósitos corporativos. Nossa equipe qualificada de designers de interface e desenvolvedores de software está sempre pronta para criar algo único para você.' %}
+          {% set filter_all = projects_section.get('filter_all', {}).get('content', 'Todos') if projects_section.get('filter_all') else 'Todos' %}
+          {% set filter_type1 = projects_section.get('filter_type1', {}).get('content', 'Aplicativos Mobile') if projects_section.get('filter_type1') else 'Aplicativos Mobile' %}
+          {% set filter_type2 = projects_section.get('filter_type2', {}).get('content', 'Sites') if projects_section.get('filter_type2') else 'Sites' %}
+          <h2 class="wow fadeInLeft">{{ projects_title }}</h2>
+          {% if projects_description %}
+          <p class="quote-jean wow fadeInRight" data-wow-delay=".1s">{{ projects_description }}</p>
+          {% endif %}
+          <div class="isotope-filters isotope-filters-horizontal">
+            <button class="isotope-filters-toggle button button-md button-icon button-icon-right button-default-outline button-wapasha" data-custom-toggle="#isotope-3" data-custom-toggle-hide-on-blur="true" data-custom-toggle-disable-on-blur="true"><span class="icon fa fa-caret-down"></span>Filtrar</button>
+            <ul class="isotope-filters-list" id="isotope-3">
+              <li><a class="active" href="#" data-isotope-filter="*" data-isotope-group="gallery">{{ filter_all }}</a></li>
+              <li><a href="#" data-isotope-filter="Type 1" data-isotope-group="gallery">{{ filter_type1 }}</a></li>
+              <li><a href="#" data-isotope-filter="Type 2" data-isotope-group="gallery">{{ filter_type2 }}</a></li>
+            </ul>
+          </div>
+          <div class="row row-30 isotope" data-isotope-layout="fitRows" data-isotope-group="gallery" data-lightgallery="group">
+            {% if projects %}
+              {% for project in projects %}
+              <div class="col-sm-6 col-lg-4 col-xxl-3 isotope-item wow {% if loop.index <= 4 %}fadeInRight{% else %}fadeInLeft{% endif %}" data-filter="{{ project.filter_type }}" {% if loop.index > 1 and loop.index <= 4 %}data-wow-delay="{{ (loop.index - 1) * 0.1 }}s"{% elif loop.index > 4 %}data-wow-delay="{{ (loop.index - 5) * 0.1 }}s"{% endif %}>
+                <!-- Thumbnail Classic-->
+                <article class="thumbnail thumbnail-classic thumbnail-md">
+                  {% if project.image_path %}
+                  <div class="thumbnail-classic-figure">
+                    <img src="{{ url_for('static', filename=project.image_path.replace('\\', '/')) }}" alt="{{ project.title }}" width="420" height="350"/>
+                  </div>
+                  {% endif %}
+                  <div class="thumbnail-classic-caption">
+                    <div class="thumbnail-classic-title-wrap">
+                      {% if project.image_path %}
+                      <a class="icon fl-bigmug-line-zoom60" href="{{ url_for('static', filename=project.image_path.replace('\\', '/')) }}" data-lightgallery="item">
+                        <img src="{{ url_for('static', filename=project.image_path.replace('\\', '/')) }}" alt="{{ project.title }}" width="420" height="350"/>
+                      </a>
+                      {% endif %}
+                      <h5 class="thumbnail-classic-title"><a href="{{ project.link_url if project.link_url else '#' }}">{{ project.title }}</a></h5>
+                    </div>
+                    {% if project.description %}
+                    <p class="thumbnail-classic-text">{{ project.description }}</p>
+                    {% endif %}
+                  </div>
+                </article>
+              </div>
+              {% endfor %}
+            {% else %}
+              <!-- Fallback: mostrar projetos padrão caso não haja projetos cadastrados -->
+              <div class="col-sm-6 col-lg-4 col-xxl-3 isotope-item wow fadeInRight" data-filter="Type 1">
+                <article class="thumbnail thumbnail-classic thumbnail-md">
+                  <div class="thumbnail-classic-figure"><img src="{{ url_for('static', filename='images/fullwidth-gallery-1-420x350.jpg') }}" alt="" width="420" height="350"/></div>
+                  <div class="thumbnail-classic-caption">
+                    <div class="thumbnail-classic-title-wrap"><a class="icon fl-bigmug-line-zoom60" href="{{ url_for('static', filename='images/grid-gallery-1-1200x800-original.jpg') }}" data-lightgallery="item"><img src="{{ url_for('static', filename='images/fullwidth-gallery-1-420x350.jpg') }}" alt="" width="420" height="350"/></a>
+                      <h5 class="thumbnail-classic-title"><a href="#">FinStep</a></h5>
+                    </div>
+                    <p class="thumbnail-classic-text">Trabalhamos duro em cada aplicativo para entregar recursos de primeira linha com uma excelente interface que você não encontrará em nenhum outro lugar.</p>
+                  </div>
+                </article>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- Anos de experiência-->
+      <section class="section section-sm bg-default">
+        <div class="container">
+          <div class="row row-30 row-xl-24 justify-content-center align-items-center align-items-lg-start text-left">
+            {% if company_stats %}
+            <div class="col-md-6 col-lg-5 col-xl-4 text-center"><a class="text-img" href="{{ company_stats.button_link if company_stats.button_link else '#' }}">
+                <div id="particles-js"></div><span class="counter">{{ company_stats.years }}</span></a></div>
+            <div class="col-sm-8 col-md-6 col-lg-5 col-xl-4">
+              <div class="text-width-extra-small offset-top-lg-24 wow fadeInUp">
+                <h3 class="title-decoration-lines-left">{{ company_stats.title if company_stats.title else 'Anos de Experiência' }}</h3>
+                {% if company_stats.description %}
+                <p class="text-gray-500">{{ company_stats.description }}</p>
+                {% endif %}
+                <a class="button button-secondary button-pipaluk" href="{{ company_stats.button_link if company_stats.button_link else '#' }}">{{ company_stats.button_text if company_stats.button_text else 'Entre em contato' }}</a>
+              </div>
+            </div>
+            <div class="col-sm-10 col-md-8 col-lg-6 col-xl-4 wow fadeInRight" data-wow-delay=".1s">
+              <div class="row justify-content-center border-2-column offset-top-xl-26">
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">{{ company_stats.stat1_number if company_stats.stat1_number else '2' }}</span>{% if company_stats.stat1_symbol %}<span class="symbol">{{ company_stats.stat1_symbol }}</span>{% endif %}
+                    </div>
+                    <h6 class="counter-amy-title">{{ company_stats.stat1_label if company_stats.stat1_label else 'aplicativos desenvolvidos' }}</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">{{ company_stats.stat2_number if company_stats.stat2_number else '40' }}</span>{% if company_stats.stat2_symbol %}<span class="symbol">{{ company_stats.stat2_symbol }}</span>{% endif %}
+                    </div>
+                    <h6 class="counter-amy-title">{{ company_stats.stat2_label if company_stats.stat2_label else 'Consultores' }}</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">{{ company_stats.stat3_number if company_stats.stat3_number else '12' }}</span>{% if company_stats.stat3_symbol %}<span class="symbol">{{ company_stats.stat3_symbol }}</span>{% endif %}
+                    </div>
+                    <h6 class="counter-amy-title">{{ company_stats.stat3_label if company_stats.stat3_label else 'Prêmios conquistados' }}</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">{{ company_stats.stat4_number if company_stats.stat4_number else '160' }}</span>{% if company_stats.stat4_symbol %}<span class="symbol">{{ company_stats.stat4_symbol }}</span>{% endif %}
+                    </div>
+                    <h6 class="counter-amy-title">{{ company_stats.stat4_label if company_stats.stat4_label else 'Funcionários' }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <!-- Fallback padrão -->
+            <div class="col-md-6 col-lg-5 col-xl-4 text-center"><a class="text-img" href="#">
+                <div id="particles-js"></div><span class="counter">10</span></a></div>
+            <div class="col-sm-8 col-md-6 col-lg-5 col-xl-4">
+              <div class="text-width-extra-small offset-top-lg-24 wow fadeInUp">
+                <h3 class="title-decoration-lines-left">Anos de Experiência</h3>
+                <p class="text-gray-500">RatherApp é uma equipe de designers e desenvolvedores de aplicativos altamente experientes criando software único para você.</p><a class="button button-secondary button-pipaluk" href="#">Entre em contato</a>
+              </div>
+            </div>
+            <div class="col-sm-10 col-md-8 col-lg-6 col-xl-4 wow fadeInRight" data-wow-delay=".1s">
+              <div class="row justify-content-center border-2-column offset-top-xl-26">
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">2</span><span class="symbol">k</span></div>
+                    <h6 class="counter-amy-title">aplicativos desenvolvidos</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">40</span></div>
+                    <h6 class="counter-amy-title">Consultores</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">12</span></div>
+                    <h6 class="counter-amy-title">Prêmios conquistados</h6>
+                  </div>
+                </div>
+                <div class="col-9 col-sm-6">
+                  <div class="counter-amy">
+                    <div class="counter-amy-number"><span class="counter">160</span></div>
+                    <h6 class="counter-amy-title">Funcionários</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            <div class="col-lg-6 col-xl-12 align-self-center">
+              <div class="row row-30 justify-content-center">
+                {% if client_images %}
+                  {% for client_img in client_images %}
+                  <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft" {% if loop.index > 1 %}data-wow-delay="{{ (loop.index - 1) * 0.1 }}s"{% endif %}>
+                    <a class="clients-classic" href="{{ client_img.link_url if client_img.link_url else '#' }}">
+                      <img src="{{ url_for('static', filename=client_img.image_path.replace('\\', '/')) }}" alt="{{ client_img.alt_text if client_img.alt_text else 'Cliente' }}" width="270" height="117"/>
+                    </a>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <!-- Fallback padrão -->
+                  <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft"><a class="clients-classic" href="#"><img src="{{ url_for('static', filename='images/clients-9-270x117.png') }}" alt="" width="270" height="117"/></a></div>
+                  <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft" data-wow-delay=".1s"><a class="clients-classic" href="#"><img src="{{ url_for('static', filename='images/clients-10-270x117.png') }}" alt="" width="270" height="117"/></a></div>
+                  <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft" data-wow-delay=".2s"><a class="clients-classic" href="#"><img src="{{ url_for('static', filename='images/clients-3-270x117.png') }}" alt="" width="270" height="117"/></a></div>
+                  <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft" data-wow-delay=".3s"><a class="clients-classic" href="#"><img src="{{ url_for('static', filename='images/clients-11-270x117.png') }}" alt="" width="270" height="117"/></a></div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Você sonha — nós realizamos-->
+      <section class="section section-sm bg-default text-md-left">
+        <div class="container">
+          <div class="row row-50 align-items-center justify-content-center justify-content-xl-between">
+            <div class="col-lg-6 col-xl-5 wow fadeInLeft">
+              <h2>Obtenha Mais Conosco</h2>
+              <!-- Bootstrap tabs-->
+              {% if feature_tabs %}
+              <div class="tabs-custom tabs-horizontal tabs-line tabs-line-big text-center text-md-left" id="tabs-6">
+                <!-- Nav tabs-->
+                <ul class="nav nav-tabs">
+                  {% for tab in feature_tabs %}
+                  <li class="nav-item" role="presentation">
+                    <a class="nav-link nav-link-big {% if loop.first %}active{% endif %}" href="#tabs-6-{{ tab.id }}" data-toggle="tab">
+                      {{ "%02d"|format(loop.index) }}
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+                <!-- Tab panes-->
+                <div class="tab-content">
+                  {% for tab in feature_tabs %}
+                  <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tabs-6-{{ tab.id }}">
+                    <h5 class="font-weight-normal">{{ tab.title }}</h5>
+                    {% if tab.content %}
+                    <p>{{ tab.content }}</p>
+                    {% endif %}
+                    <div class="group-sm group-middle">
+                      <a class="button button-secondary button-pipaluk" href="{{ tab.button1_link if tab.button1_link else '#' }}">{{ tab.button1_text if tab.button1_text else 'Entre em contato' }}</a>
+                      <a class="button button-default-outline button-wapasha" href="{{ tab.button2_link if tab.button2_link else '#' }}">{{ tab.button2_text if tab.button2_text else 'Saiba Mais' }}</a>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% else %}
+              <!-- Fallback padrão -->
+              <div class="tabs-custom tabs-horizontal tabs-line tabs-line-big text-center text-md-left" id="tabs-6">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item" role="presentation"><a class="nav-link nav-link-big active" href="#tabs-6-1" data-toggle="tab">01</a></li>
+                  <li class="nav-item" role="presentation"><a class="nav-link nav-link-big" href="#tabs-6-2" data-toggle="tab">02</a></li>
+                  <li class="nav-item" role="presentation"><a class="nav-link nav-link-big" href="#tabs-6-3" data-toggle="tab">03</a></li>
+                  <li class="nav-item" role="presentation"><a class="nav-link nav-link-big" href="#tabs-6-4" data-toggle="tab">04</a></li>
+                </ul>
+                <div class="tab-content">
+                  <div class="tab-pane fade show active" id="tabs-6-1">
+                    <h5 class="font-weight-normal">APLICATIVOS GRATUITOS</h5>
+                    <p>Regularmente fazemos upload de novos aplicativos gratuitos em nosso site, que é totalmente acessível para nossos clientes e assinantes. Você também pode saber mais sobre aplicativos gratuitos em nosso blog.</p>
+                    <div class="group-sm group-middle"><a class="button button-secondary button-pipaluk" href="#">Entre em contato</a><a class="button button-default-outline button-wapasha" href="#">Saiba Mais</a></div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-lg-6 text-center wow fadeInUp" data-wow-delay=".1s">
+              <div class="owl-carousel owl-style-1" data-items="2" data-stage-padding="0" data-loop="true" data-margin="0" data-mouse-drag="true" data-autoplay="true">
+                {% if feature_carousel_images %}
+                  {% for img in feature_carousel_images %}
+                  <a class="box-device" href="#"><img src="{{ url_for('static', filename=img.replace('\\', '/')) }}" alt="" width="313" height="580"/></a>
+                  {% endfor %}
+                {% else %}
+                  <a class="box-device" href="#"><img src="{{ url_for('static', filename='images/index-4-313x580.png') }}" alt="" width="313" height="580"/></a>
+                  <a class="box-device" href="#"><img src="{{ url_for('static', filename='images/index-5-313x580.png') }}" alt="" width="313" height="580"/></a>
+                  <a class="box-device" href="#"><img src="{{ url_for('static', filename='images/index-4-313x580.png') }}" alt="" width="313" height="580"/></a>
+                  <a class="box-device" href="#"><img src="{{ url_for('static', filename='images/index-5-313x580.png') }}" alt="" width="313" height="580"/></a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preços-->
+      <section class="section section-sm section-bottom-70 section-fluid bg-default">
+        <div class="container">
+          <h2>Preços</h2>
+          <div class="row row-30 justify-content-center">
+            {% if pricing %}
+              {% for plan in pricing %}
+              <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="box-pricing box-pricing-black{% if plan.is_popular %} box-pricing-popular{% endif %}">
+                  <div class="box-pricing-body">
+                    <h5 class="box-pricing-title">{{ plan.name }}</h5>
+                    <h3 class="box-pricing-price">${{ "%.2f"|format(plan.price) }}</h3>
+                    <div class="box-pricing-time">a partir de</div>
+                    <div class="box-pricing-divider">
+                      <div class="divider"></div><span>{{ plan.name }}</span>
+                    </div>
+                    <ul class="box-pricing-list">
+                      {% if plan.features %}
+                        {% for feature in plan.features.split('\n') %}
+                          {% if feature.strip() %}
+                          <li class="active">{{ feature.strip() }}</li>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </ul>
+                  </div>
+                  <div class="box-pricing-button"><a class="button button-lg button-block {% if plan.is_popular %}button-primary{% else %}button-gray-4{% endif %}" href="#">Começar</a></div>
+                  {% if plan.is_popular %}
+                  <div class="box-pricing-badge">popular</div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <!-- Fallback padrão caso não haja planos cadastrados -->
+              <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="box-pricing box-pricing-black">
+                  <div class="box-pricing-body">
+                    <h5 class="box-pricing-title">básico</h5>
+                    <h3 class="box-pricing-price">$500.00</h3>
+                    <div class="box-pricing-time">a partir de</div>
+                    <div class="box-pricing-divider">
+                      <div class="divider"></div><span>Básico</span>
+                    </div>
+                    <ul class="box-pricing-list">
+                      <li class="active">Desenvolvimento de conceito</li>
+                      <li class="active">Design de interface</li>
+                      <li>Gerenciamento de configuração</li>
+                      <li>Garantia de qualidade de software</li>
+                      <li>Integração de aplicativo</li>
+                    </ul>
+                  </div>
+                  <div class="box-pricing-button"><a class="button button-lg button-block button-gray-4" href="#">Começar</a></div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="box-pricing box-pricing-black box-pricing-popular">
+                  <div class="box-pricing-body">
+                    <h5 class="box-pricing-title">Otimizado</h5>
+                    <h3 class="box-pricing-price">$800.00</h3>
+                    <div class="box-pricing-time">a partir de</div>
+                    <div class="box-pricing-divider">
+                      <div class="divider"></div><span>Otimizado</span>
+                    </div>
+                    <ul class="box-pricing-list">
+                      <li class="active">Desenvolvimento de conceito</li>
+                      <li class="active">Design de interface</li>
+                      <li class="active">Gerenciamento de configuração</li>
+                      <li class="active">Garantia de qualidade de software</li>
+                      <li>Integração de aplicativo</li>
+                    </ul>
+                  </div>
+                  <div class="box-pricing-button"><a class="button button-lg button-block button-primary" href="#">Começar</a></div>
+                  <div class="box-pricing-badge">popular</div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="box-pricing box-pricing-black">
+                  <div class="box-pricing-body">
+                    <h5 class="box-pricing-title">Ultimate</h5>
+                    <h3 class="box-pricing-price">$1200.00</h3>
+                    <div class="box-pricing-time">a partir de</div>
+                    <div class="box-pricing-divider">
+                      <div class="divider"></div><span>Ultimate</span>
+                    </div>
+                    <ul class="box-pricing-list">
+                      <li class="active">Desenvolvimento de conceito</li>
+                      <li class="active">Design de interface</li>
+                      <li class="active">Gerenciamento de configuração</li>
+                      <li class="active">Garantia de qualidade de software</li>
+                      <li class="active">Integração de aplicativo</li>
+                    </ul>
+                  </div>
+                  <div class="box-pricing-button"><a class="button button-lg button-block button-gray-4" href="#">Começar</a></div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- Informações de contato-->
+      <section class="section section-sm bg-default" id="contacts">
+        <div class="container">
+          <div class="row row-30 justify-content-center">
+            <div class="col-sm-8 col-md-6 col-lg-4">
+              <article class="box-contacts">
+                <div class="box-contacts-body">
+                  <div class="box-contacts-icon fl-bigmug-line-cellphone55"></div>
+                  <div class="box-contacts-decor"></div>
+                  {% if site_content.get('contact') and site_content.contact.get('phone_1') and site_content.contact.phone_1.get('content') %}
+                  <p class="box-contacts-link"><a href="tel:{{ site_content.contact.phone_1.content|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}">{{ site_content.contact.phone_1.content }}</a></p>
+                  {% endif %}
+                  {% if site_content.get('contact') and site_content.contact.get('phone_2') and site_content.contact.phone_2.get('content') %}
+                  <p class="box-contacts-link"><a href="tel:{{ site_content.contact.phone_2.content|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}">{{ site_content.contact.phone_2.content }}</a></p>
+                  {% endif %}
+                </div>
+              </article>
+            </div>
+            <div class="col-sm-8 col-md-6 col-lg-4">
+              <article class="box-contacts">
+                <div class="box-contacts-body">
+                  <div class="box-contacts-icon fl-bigmug-line-up104"></div>
+                  <div class="box-contacts-decor"></div>
+                  {% if site_content.get('contact') and site_content.contact.get('address') and site_content.contact.address.get('content') %}
+                  <p class="box-contacts-link"><a href="#">{{ site_content.contact.address.content }}</a></p>
+                  {% else %}
+                  <p class="box-contacts-link"><a href="#">4730 Crystal Springs Dr, Los Angeles, CA 90027</a></p>
+                  {% endif %}
+                </div>
+              </article>
+            </div>
+            <div class="col-sm-8 col-md-6 col-lg-4">
+              <article class="box-contacts">
+                <div class="box-contacts-body">
+                  <div class="box-contacts-icon fl-bigmug-line-chat55"></div>
+                  <div class="box-contacts-decor"></div>
+                  {% if site_content.get('contact') and site_content.contact.get('email_1') and site_content.contact.email_1.get('content') %}
+                  <p class="box-contacts-link"><a href="mailto:{{ site_content.contact.email_1.content }}">{{ site_content.contact.email_1.content }}</a></p>
+                  {% endif %}
+                  {% if site_content.get('contact') and site_content.contact.get('email_2') and site_content.contact.email_2.get('content') %}
+                  <p class="box-contacts-link"><a href="mailto:{{ site_content.contact.email_2.content }}">{{ site_content.contact.email_2.content }}</a></p>
+                  {% endif %}
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Rodapé da Página-->
+      <footer class="section section-fluid footer-minimal context-dark" style="width: 100%; max-width: 100%; overflow-x: hidden;">
+        <div class="bg-gray-15" style="width: 100%; max-width: 100%;">
+          <div class="container-fluid" style="width: 100%; max-width: 100%; box-sizing: border-box;">
+            <div class="footer-minimal-inset oh">
+              <ul class="footer-list-category-2">
+                <li><a href="#">Design de Interface</a></li>
+                <li><a href="#">Aplicativos Windows</a></li>
+                <li><a href="#">Aplicativos Android</a></li>
+                <li><a href="#">Soluções na Nuvem</a></li>
+                <li><a href="#">Suporte ao Cliente</a></li>
+              </ul>
+            </div>
+            <div class="footer-minimal-bottom-panel text-sm-left">
+              <div class="row row-10 align-items-md-center">
+                <div class="col-sm-6 col-md-4 text-sm-right text-md-center">
+                  <div>
+                    <ul class="list-inline list-inline-sm footer-social-list-2">
+                      {% if site_content.get('footer') and site_content.footer.get('social_facebook') and site_content.footer.social_facebook.get('content') and site_content.footer.social_facebook.content.strip() %}
+                      <li><a class="icon fa fa-facebook" href="{{ site_content.footer.social_facebook.content }}" target="_blank" rel="noopener noreferrer"></a></li>
+                      {% endif %}
+                      {% if site_content.get('footer') and site_content.footer.get('social_twitter') and site_content.footer.social_twitter.get('content') and site_content.footer.social_twitter.content.strip() %}
+                      <li><a class="icon fa fa-twitter" href="{{ site_content.footer.social_twitter.content }}" target="_blank" rel="noopener noreferrer"></a></li>
+                      {% endif %}
+                      {% if site_content.get('footer') and site_content.footer.get('social_google') and site_content.footer.social_google.get('content') and site_content.footer.social_google.content.strip() %}
+                      <li><a class="icon fa fa-google-plus" href="{{ site_content.footer.social_google.content }}" target="_blank" rel="noopener noreferrer"></a></li>
+                      {% endif %}
+                      {% if site_content.get('footer') and site_content.footer.get('social_instagram') and site_content.footer.social_instagram.get('content') and site_content.footer.social_instagram.content.strip() %}
+                      <li><a class="icon fa fa-instagram" href="{{ site_content.footer.social_instagram.content }}" target="_blank" rel="noopener noreferrer"></a></li>
+                      {% endif %}
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-md-4 order-sm-first">
+                  <!-- Rights-->
+                  <p class="rights"><span>&copy;&nbsp;</span><span class="copyright-year"></span> <span>RatherApp</span>
+                  </p>
+                </div>
+                <div class="col-sm-6 col-md-4 text-md-right"><span>Todos os direitos reservados.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+    <!-- Global Mailform Output-->
+    <div class="snackbars" id="form-output-global"></div>
+    
+    <!-- Botão Flutuante WhatsApp -->
+    {% set whatsapp_enabled = site_content.get('contact', {}).get('whatsapp_enabled', {}).get('content', '1') if site_content.get('contact') and site_content.contact.get('whatsapp_enabled') else '1' %}
+    {% if whatsapp_enabled == '1' %}
+      {% set whatsapp_phone_field = site_content.get('contact', {}).get('whatsapp_phone', {}).get('content', 'phone_1') if site_content.get('contact') and site_content.contact.get('whatsapp_phone') else 'phone_1' %}
+      {% if site_content.get('contact') and site_content.contact.get(whatsapp_phone_field) and site_content.contact[whatsapp_phone_field].get('content') %}
+        {% set phone_content = site_content.contact[whatsapp_phone_field].content %}
+        {% if phone_content and phone_content.strip() %}
+          {% set whatsapp_number = phone_content|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('+', '') %}
+        {% else %}
+          {% set whatsapp_number = '' %}
+        {% endif %}
+      {% else %}
+        {% set whatsapp_number = '' %}
+      {% endif %}
+      {% if whatsapp_number %}
+      <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" class="whatsapp-float" title="Fale conosco no WhatsApp">
+        <i class="fa fa-whatsapp"></i>
+      </a>
+      {% endif %}
+    {% endif %}
+    
+    <!-- Botão Voltar ao Topo -->
+    <a href="#" id="ui-to-top" class="ui-to-top fa fa-angle-up active"></a>
+    
+    <!-- Javascript-->
+    <script src="{{ url_for('static', filename='js/core.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- coded by Himic-->
+  </body>
+</html>

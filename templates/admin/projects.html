@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Gerenciar Projetos{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 class="mb-4"><i class="bi bi-gear"></i> Configurações da Seção</h4>
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Título da Seção</label>
+                <input type="text" class="form-control" name="section_title" 
+                       value="{{ projects_section.get('title', {}).get('content', 'Projetos Recentes') if projects_section.get('title') else 'Projetos Recentes' }}">
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Descrição da Seção</label>
+                <textarea class="form-control" name="section_description" rows="3">{{ projects_section.get('description', {}).get('content', '') if projects_section.get('description') else '' }}</textarea>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Filtros</label>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Filtro "Todos"</label>
+                    <input type="text" class="form-control form-control-sm" name="filter_all" 
+                           value="{{ projects_section.get('filter_all', {}).get('content', 'Todos') if projects_section.get('filter_all') else 'Todos' }}">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Filtro Type 1 (Aplicativos Mobile)</label>
+                    <input type="text" class="form-control form-control-sm" name="filter_type1" 
+                           value="{{ projects_section.get('filter_type1', {}).get('content', 'Aplicativos Mobile') if projects_section.get('filter_type1') else 'Aplicativos Mobile' }}">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Filtro Type 2 (Sites)</label>
+                    <input type="text" class="form-control form-control-sm" name="filter_type2" 
+                           value="{{ projects_section.get('filter_type2', {}).get('content', 'Sites') if projects_section.get('filter_type2') else 'Sites' }}">
+                </div>
+            </div>
+        </div>
+        <button type="submit" name="save_section_config" class="btn btn-primary">
+            <i class="bi bi-save"></i> Salvar Configurações da Seção
+        </button>
+    </form>
+</div>
+
+<div class="content-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-folder"></i> Projetos</h4>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#projectModal" onclick="newProject()">
+            <i class="bi bi-plus-circle"></i> Novo Projeto
+        </button>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Imagem</th>
+                    <th>Título</th>
+                    <th>Descrição</th>
+                    <th>Link</th>
+                    <th>Tipo</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        {% if project.image_path %}
+                        <img src="{{ url_for('static', filename=project.image_path) }}" alt="{{ project.title }}" style="width: 80px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <span class="text-muted">Sem imagem</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.description[:50] if project.description else '' }}...</td>
+                    <td>
+                        {% if project.link_url and project.link_url != '#' %}
+                        <span class="badge bg-info" title="{{ project.link_url }}">Com Link</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Sem Link</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-secondary">{{ project.filter_type }}</span></td>
+                    <td>{{ project.order_index }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-action" onclick="editProject({{ project.id }}, '{{ project.title|replace("'", "\\'") }}', '{{ project.description|replace("'", "\\'") }}', '{{ project.link_url|replace("'", "\\'") if project.link_url else "#" }}', '{{ project.filter_type }}', {{ project.order_index }})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este projeto?');">
+                            <input type="hidden" name="delete" value="{{ project.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger btn-action">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para adicionar/editar projeto -->
+<div class="modal fade" id="projectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="projectModalTitle">Novo Projeto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="projectForm">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="projectId">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-control" name="title" id="projectTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="description" id="projectDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Link do Título (URL)</label>
+                        <input type="text" class="form-control" name="link_url" id="projectLinkUrl" placeholder="#" value="#">
+                        <small class="text-muted">URL que será aberta quando o usuário clicar no título do projeto. Use # para desabilitar o link.</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo/Filtro</label>
+                                <select class="form-select" name="filter_type" id="projectFilterType">
+                                    <option value="Type 1">Aplicativos Mobile</option>
+                                    <option value="Type 2">Sites</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Ordem</label>
+                                <input type="number" class="form-control" name="order_index" id="projectOrderIndex" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                        <small class="text-muted">Deixe em branco para manter a imagem atual</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function newProject() {
+    document.getElementById('projectModalTitle').textContent = 'Novo Projeto';
+    document.getElementById('projectForm').reset();
+    document.getElementById('projectId').value = '';
+}
+
+function editProject(id, title, description, linkUrl, filterType, orderIndex) {
+    document.getElementById('projectModalTitle').textContent = 'Editar Projeto';
+    document.getElementById('projectId').value = id;
+    document.getElementById('projectTitle').value = title;
+    document.getElementById('projectDescription').value = description;
+    document.getElementById('projectLinkUrl').value = linkUrl || '#';
+    document.getElementById('projectFilterType').value = filterType;
+    document.getElementById('projectOrderIndex').value = orderIndex;
+    new bootstrap.Modal(document.getElementById('projectModal')).show();
+}
+</script>
+{% endblock %}
+
