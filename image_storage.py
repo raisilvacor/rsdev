@@ -50,13 +50,17 @@ def save_image_to_db(image_file, image_key=None, category='images'):
         print(f"⚠️ Aviso: Não foi possível conectar ao banco: {e}")
         return None
     try:
+        # Detectar qual banco está sendo usado: PostgreSQL wrapper tem _conn, SQLite não tem
+        is_postgres_connection = hasattr(conn, '_conn')
+        
         # Verificar se a tabela stored_images existe
         c = conn.cursor()
         try:
             # Tentar verificar se a tabela existe
-            if os.environ.get('DATABASE_URL'):
+            if is_postgres_connection:
                 # PostgreSQL
-                c.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='stored_images')")
+                query = "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='stored_images')"
+                c.execute(query)
                 table_exists = c.fetchone()
                 table_exists = table_exists[0] if isinstance(table_exists, (tuple, list)) else False
             else:
@@ -68,8 +72,8 @@ def save_image_to_db(image_file, image_key=None, category='images'):
         
         if not table_exists:
             print("⚠️ Tabela stored_images não existe. Criando...")
-            # Criar tabela se não existir
-            if os.environ.get('DATABASE_URL'):
+            # Criar tabela se não existir - usar detecção dinâmica
+            if is_postgres_connection:
                 # PostgreSQL
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS stored_images (
@@ -119,8 +123,10 @@ def save_image_to_db(image_file, image_key=None, category='images'):
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             image_key = f"{category}/{timestamp}_{filename}"
         
-        # Preparar query adaptada para SQLite ou PostgreSQL
-        is_postgres = os.environ.get('DATABASE_URL') is not None
+        # Detectar dinamicamente qual banco está sendo usado
+        # PostgreSQL wrapper do db_connection tem _conn, SQLite não tem
+        is_postgres = hasattr(conn, '_conn')
+        
         file_size = len(image_data) if isinstance(image_data, (bytes, bytearray)) else len(bytes(image_data)) if image_data else 0
         
         if is_postgres:
@@ -152,13 +158,27 @@ def save_image_to_db(image_file, image_key=None, category='images'):
         print(f"✓ Imagem salva no banco: {image_key} ({file_size} bytes)")
         return image_key
     except Exception as e:
-        conn.rollback()
-        print(f"Erro ao salvar imagem no banco: {e}")
+        if 'conn' in locals():
+            try:
+                conn.rollback()
+            except:
+                pass
+        error_msg = f"Erro ao salvar imagem no banco: {e}"
+        print(f"❌ {error_msg}")
         import traceback
         traceback.print_exc()
+        
+        # Se deve usar banco obrigatoriamente, re-raise o erro
+        if must_use_db:
+            raise Exception(f"Falha crítica ao salvar imagem no banco: {e}") from e
+        
         return None
     finally:
-        conn.close()
+        if 'conn' in locals():
+            try:
+                conn.close()
+            except:
+                pass
 
 def get_image_from_db(image_key):
     """
@@ -177,10 +197,14 @@ def get_image_from_db(image_key):
     try:
         c = conn.cursor()
         
-        # Adaptar query para PostgreSQL se necessário
-        query = 'SELECT image_data, mime_type, filename FROM stored_images WHERE image_key = ?'
-        if os.environ.get('DATABASE_URL') and '?' in query:
-            query = query.replace('?', '%s')
+        # Detectar qual banco está sendo usado dinamicamente
+        is_postgres = hasattr(conn, '_conn')
+        
+        # Adaptar query para PostgreSQL ou SQLite
+        if is_postgres:
+            query = 'SELECT image_data, mime_type, filename FROM stored_images WHERE image_key = %s'
+        else:
+            query = 'SELECT image_data, mime_type, filename FROM stored_images WHERE image_key = ?'
         
         row = c.execute(query, (image_key,)).fetchone()
         
@@ -223,10 +247,14 @@ def delete_image_from_db(image_key):
     try:
         c = conn.cursor()
         
-        # Adaptar query para PostgreSQL se necessário
-        query = 'DELETE FROM stored_images WHERE image_key = ?'
-        if os.environ.get('DATABASE_URL') and '?' in query:
-            query = query.replace('?', '%s')
+        # Detectar qual banco está sendo usado dinamicamente
+        is_postgres = hasattr(conn, '_conn')
+        
+        # Adaptar query para PostgreSQL ou SQLite
+        if is_postgres:
+            query = 'DELETE FROM stored_images WHERE image_key = %s'
+        else:
+            query = 'DELETE FROM stored_images WHERE image_key = ?'
         
         c.execute(query, (image_key,))
         conn.commit()
@@ -256,10 +284,14 @@ def image_exists_in_db(image_key):
     try:
         c = conn.cursor()
         
-        # Adaptar query para PostgreSQL se necessário
-        query = 'SELECT COUNT(*) FROM stored_images WHERE image_key = ?'
-        if os.environ.get('DATABASE_URL') and '?' in query:
-            query = query.replace('?', '%s')
+        # Detectar qual banco está sendo usado dinamicamente
+        is_postgres = hasattr(conn, '_conn')
+        
+        # Adaptar query para PostgreSQL ou SQLite
+        if is_postgres:
+            query = 'SELECT COUNT(*) FROM stored_images WHERE image_key = %s'
+        else:
+            query = 'SELECT COUNT(*) FROM stored_images WHERE image_key = ?'
         
         row = c.execute(query, (image_key,)).fetchone()
         
