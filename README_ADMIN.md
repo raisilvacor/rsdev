@@ -61,10 +61,12 @@ O sistema usa SQLite (`site_content.db`) com as seguintes tabelas:
 
 ## Upload de Imagens
 
-As imagens são salvas em:
-- `static/uploads/logos/` - Logos
-- `static/uploads/banners/` - Banners
-- `static/uploads/images/` - Outras imagens
+As imagens são salvas em uma pasta persistente fora de `static/`:
+- `uploads/logos/` - Logos (ou `/data/uploads/logos/` no Render com Render Disk)
+- `uploads/banners/` - Banners (ou `/data/uploads/banners/` no Render com Render Disk)
+- `uploads/images/` - Outras imagens (ou `/data/uploads/images/` no Render com Render Disk)
+
+**Importante:** A pasta `uploads/` é persistente e não é apagada quando o Render reinicia. Configure a variável de ambiente `UPLOAD_FOLDER` no Render para usar um diretório persistente como `/data/uploads` (Render Disk).
 
 ## Segurança
 

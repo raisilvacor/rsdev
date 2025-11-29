@@ -126,7 +126,7 @@
         {% for image in client_images %}
         <div class="col-md-3 mb-3">
             <div class="card">
-                <img src="{{ url_for('static', filename=image.image_path) }}" class="card-img-top" alt="{{ image.alt_text }}" style="height: 120px; object-fit: contain; padding: 10px;">
+                <img src="{{ get_image_url(image.image_path) }}" class="card-img-top" alt="{{ image.alt_text }}" style="height: 120px; object-fit: contain; padding: 10px;">
                 <div class="card-body">
                     <p class="card-text small">{{ image.alt_text or 'Sem descrição' }}</p>
                     <div class="btn-group btn-group-sm w-100">

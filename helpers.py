@@ -4,6 +4,55 @@ Versão completa adaptada para PostgreSQL e SQLite
 """
 import os
 from db_connection import get_db
+from flask import url_for
+
+def get_image_url(image_path):
+    """
+    Retorna a URL correta para uma imagem.
+    Se for um upload (logos/, banners/, images/), usa url_for('uploaded_file').
+    Caso contrário, usa url_for('static').
+    """
+    if not image_path:
+        return None
+    
+    # Normalizar caminho
+    path = image_path.replace('\\', '/')
+    
+    # Verificar se é um upload (começa com logos/, banners/, ou images/ que não são estáticas)
+    # Imagens estáticas conhecidas do tema começam com images/ mas não são uploads
+    static_image_prefixes = [
+        'images/logo-',
+        'images/slider-',
+        'images/index-',
+        'images/fullwidth-gallery-',
+        'images/clients-',
+        'images/banner/',
+        'images/ie8-panel/',
+        'images/grid-gallery-',
+        'images/parallax-',
+    ]
+    
+    # Se começa com logos/ ou banners/, é definitivamente um upload
+    if path.startswith('logos/') or path.startswith('banners/'):
+        return url_for('uploaded_file', filename=path)
+    
+    # Se começa com images/, verificar se é estático ou upload
+    if path.startswith('images/'):
+        # Verificar se é uma imagem estática conhecida
+        is_static = any(path.startswith(prefix) for prefix in static_image_prefixes)
+        if is_static:
+            return url_for('static', filename=path)
+        else:
+            # É um upload em images/
+            return url_for('uploaded_file', filename=path)
+    
+    # Se começa com uploads/, remover o prefixo (compatibilidade com dados antigos)
+    if path.startswith('uploads/'):
+        path = path.replace('uploads/', '', 1)
+        return url_for('uploaded_file', filename=path)
+    
+    # Padrão: assumir que é estático
+    return url_for('static', filename=path)
 
 def _adapt_query(query):
     """Adapta query para funcionar com PostgreSQL ou SQLite"""

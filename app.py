@@ -1,7 +1,7 @@
 """
 Aplicação Flask principal
 """
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, send_from_directory
 import os
 from forms import process_contact_form, verify_recaptcha
 from admin import admin_bp, init_db
@@ -10,6 +10,17 @@ from helpers import get_site_content, get_projects, get_services, get_pricing, g
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Configurar pasta de uploads persistente (fora de static/)
+# Suporta variável de ambiente para Render Disk (ex: /data/uploads)
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Criar pasta de uploads se não existir
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Criar subpastas
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'logos'), exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'banners'), exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'images'), exist_ok=True)
 
 # Detectar ambiente de produção (Render.com define PORT automaticamente)
 is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
@@ -21,6 +32,11 @@ else:
 
 # Registrar blueprint do admin
 app.register_blueprint(admin_bp)
+
+# Tornar função helper de imagens disponível nos templates
+# A função get_image_url de helpers.py retorna a URL completa (uploaded_file ou static)
+from helpers import get_image_url
+app.jinja_env.globals['get_image_url'] = get_image_url
 
 # Inicializar banco de dados
 # Se DATABASE_URL estiver definido, usar PostgreSQL e inicializar automaticamente
@@ -129,6 +145,12 @@ def handle_recaptcha():
         return result, 200
     except Exception as e:
         return 'CPT002', 500
+
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    """Rota para servir arquivos da pasta de uploads persistente"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 if __name__ == '__main__':

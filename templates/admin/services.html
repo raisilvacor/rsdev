@@ -54,7 +54,7 @@
             <label class="form-label">Imagem Lateral (415x592)</label>
             {% if services_section_image %}
             <div class="mb-2">
-                <img src="{{ url_for('static', filename=services_section_image) }}" 
+                <img src="{{ get_image_url(services_section_image) }}" 
                      alt="Imagem Seção Serviços" 
                      style="max-width: 200px; max-height: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">

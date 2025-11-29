@@ -28,7 +28,7 @@
                 <tr>
                     <td>
                         {% if slide.image_path %}
-                        <img src="{{ url_for('static', filename=slide.image_path) }}" alt="{{ slide.title }}" style="width: 150px; height: 80px; object-fit: cover; border-radius: 4px;">
+                        <img src="{{ get_image_url(slide.image_path) }}" alt="{{ slide.title }}" style="width: 150px; height: 80px; object-fit: cover; border-radius: 4px;">
                         {% else %}
                         <span class="text-muted">Sem imagem</span>
                         {% endif %}

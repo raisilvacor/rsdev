@@ -1,10 +1,11 @@
 """
 Módulo do painel administrativo
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
+import sqlite3
 from datetime import datetime
 from functools import wraps
 from db_connection import get_db
@@ -12,15 +13,8 @@ from db_connection import get_db
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Configurações
-UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico'}
 DB_PATH = 'site_content.db'
-
-# Garantir que a pasta de upload existe
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs('static/uploads/logos', exist_ok=True)
-os.makedirs('static/uploads/banners', exist_ok=True)
-os.makedirs('static/uploads/images', exist_ok=True)
 
 
 def allowed_file(filename):
@@ -487,14 +481,17 @@ def content():
                                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                                     filename = f"{timestamp}_{filename}"
                                     
+                                    # Usar app.config['UPLOAD_FOLDER'] em vez de static/uploads
+                                    upload_base = current_app.config['UPLOAD_FOLDER']
+                                    
                                     if section == 'header' and 'logo' in field:
-                                        upload_dir = 'static/uploads/logos'
+                                        upload_dir = os.path.join(upload_base, 'logos')
                                     elif section == 'banner':
-                                        upload_dir = 'static/uploads/banners'
+                                        upload_dir = os.path.join(upload_base, 'banners')
                                     elif section == 'services':
-                                        upload_dir = 'static/uploads/images'
+                                        upload_dir = os.path.join(upload_base, 'images')
                                     else:
-                                        upload_dir = 'static/uploads/images'
+                                        upload_dir = os.path.join(upload_base, 'images')
                                     
                                     # Garantir que o diretório existe
                                     os.makedirs(upload_dir, exist_ok=True)
@@ -505,8 +502,14 @@ def content():
                                         image_file.save(upload_path)
                                         # Verificar se o arquivo foi salvo
                                         if os.path.exists(upload_path):
-                                            # Normalizar o caminho para usar barras normais (não Windows)
-                                            image_path = upload_path.replace('static/', '').replace('\\', '/')
+                                            # Salvar caminho relativo para uso com url_for('uploaded_file')
+                                            # Formato: logos/filename.jpg ou banners/filename.jpg ou images/filename.jpg
+                                            if section == 'header' and 'logo' in field:
+                                                image_path = f"logos/{filename}"
+                                            elif section == 'banner':
+                                                image_path = f"banners/{filename}"
+                                            else:
+                                                image_path = f"images/{filename}"
                                             
                                             if key_tuple not in updates:
                                                 updates[key_tuple] = {'content': None, 'image_path': None}
@@ -620,9 +623,11 @@ def projects():
                 filename = secure_filename(image_file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                upload_path = os.path.join('static/uploads/images', filename)
+                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+                os.makedirs(upload_dir, exist_ok=True)
+                upload_path = os.path.join(upload_dir, filename)
                 image_file.save(upload_path)
-                image_path = upload_path.replace('static/', '')
+                image_path = f"images/{filename}"
             
             project_id = request.form.get('id')
             if project_id:
@@ -670,10 +675,11 @@ def services():
                 filename = secure_filename(image_file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                upload_path = os.path.join('static/uploads/images', filename)
-                os.makedirs('static/uploads/images', exist_ok=True)
+                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+                os.makedirs(upload_dir, exist_ok=True)
+                upload_path = os.path.join(upload_dir, filename)
                 image_file.save(upload_path)
-                image_path = upload_path.replace('static/', '').replace('\\', '/')
+                image_path = f"images/{filename}"
                 
                 conn.execute('''INSERT OR REPLACE INTO site_content 
                                (section, field, content, image_path, updated_at)
@@ -1009,10 +1015,11 @@ def carousel():
                 filename = secure_filename(image_file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                upload_path = os.path.join('static/uploads/banners', filename)
+                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'banners')
+                os.makedirs(upload_dir, exist_ok=True)
+                upload_path = os.path.join(upload_dir, filename)
                 image_file.save(upload_path)
-                # Normalizar o caminho para usar barras normais (não Windows)
-                image_path = upload_path.replace('static/', '').replace('\\', '/')
+                image_path = f"banners/{filename}"
             elif slide_id:
                 # Buscar image_path atual se não foi enviada nova imagem
                 existing = conn.execute('SELECT image_path FROM carousel_slides WHERE id = ?', (slide_id,)).fetchone()
@@ -1072,10 +1079,11 @@ def company_stats():
                 filename = secure_filename(image_file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                upload_path = os.path.join('static/uploads/images', filename)
-                os.makedirs('static/uploads/images', exist_ok=True)
+                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+                os.makedirs(upload_dir, exist_ok=True)
+                upload_path = os.path.join(upload_dir, filename)
                 image_file.save(upload_path)
-                image_path = upload_path.replace('static/', '').replace('\\', '/')
+                image_path = f"images/{filename}"
                 
                 if image_id:
                     conn.execute('''UPDATE client_images SET image_path=?, alt_text=?, link_url=?, 
@@ -1165,10 +1173,11 @@ def feature_tabs():
                     filename = secure_filename(image_file.filename)
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     filename = f"{timestamp}_{filename}"
-                    upload_path = os.path.join('static/uploads/images', filename)
-                    os.makedirs('static/uploads/images', exist_ok=True)
+                    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+                    os.makedirs(upload_dir, exist_ok=True)
+                    upload_path = os.path.join(upload_dir, filename)
                     image_file.save(upload_path)
-                    image_path = upload_path.replace('static/', '').replace('\\', '/')
+                    image_path = f"images/{filename}"
                     
                     conn.execute('''INSERT INTO site_content (section, field, image_path, updated_at)
                                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
