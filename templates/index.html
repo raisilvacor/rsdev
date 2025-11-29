@@ -9,19 +9,19 @@
     <!-- Favicon usando Logo Inverso -->
     {% if site_content.get('header') and site_content.header.get('logo_inverse') and site_content.header.logo_inverse.get('image_path') %}
       {% set favicon_path = site_content.header.logo_inverse.image_path.replace('\\', '/') %}
-      {% set favicon_route = get_image_url(favicon_path) %}
+      {% set favicon_url = get_image_url(favicon_path) %}
       {% set favicon_lower = favicon_path|lower %}
       {% if '.svg' in favicon_lower %}
-        <link rel="icon" href="{{ url_for(favicon_route, filename=favicon_path) }}" type="image/svg+xml">
+        <link rel="icon" href="{{ favicon_url }}" type="image/svg+xml">
       {% elif '.png' in favicon_lower %}
-        <link rel="icon" href="{{ url_for(favicon_route, filename=favicon_path) }}" type="image/png">
+        <link rel="icon" href="{{ favicon_url }}" type="image/png">
       {% elif '.ico' in favicon_lower %}
-        <link rel="icon" href="{{ url_for(favicon_route, filename=favicon_path) }}" type="image/x-icon">
+        <link rel="icon" href="{{ favicon_url }}" type="image/x-icon">
       {% else %}
-        <link rel="icon" href="{{ url_for(favicon_route, filename=favicon_path) }}" type="image/x-icon">
+        <link rel="icon" href="{{ favicon_url }}" type="image/x-icon">
       {% endif %}
-      <link rel="shortcut icon" href="{{ url_for(favicon_route, filename=favicon_path) }}">
-      <link rel="apple-touch-icon" href="{{ url_for(favicon_route, filename=favicon_path) }}">
+      <link rel="shortcut icon" href="{{ favicon_url }}">
+      <link rel="apple-touch-icon" href="{{ favicon_url }}">
     {% else %}
       <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
       <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
@@ -66,8 +66,7 @@
                     <div class="rd-navbar-brand"><a class="brand" href="{{ url_for('index') }}">
                       {% if site_content.get('header') and site_content.header.get('logo') and site_content.header.logo.get('image_path') %}
                         {% set logo_path = site_content.header.logo.image_path.replace('\\', '/') %}
-                        {% set logo_route = get_image_url(logo_path) %}
-                        <img src="{{ url_for(logo_route, filename=logo_path) }}" alt="" width="223" height="50"/>
+                        <img src="{{ get_image_url(logo_path) }}" alt="" width="223" height="50"/>
                       {% else %}
                         <img src="{{ url_for('static', filename='images/logo-default-223x50.png') }}" alt="" width="223" height="50"/>
                       {% endif %}
@@ -104,8 +103,7 @@
             {% if carousel_slides %}
               {% for slide in carousel_slides %}
                 {% set slide_path = slide.image_path.replace('\\', '/') %}
-                {% set slide_route = get_image_url(slide_path) %}
-              <div class="swiper-slide" data-slide-bg="{{ url_for(slide_route, filename=slide_path) }}">
+              <div class="swiper-slide" data-slide-bg="{{ get_image_url(slide_path) }}">
                 <div class="swiper-slide-caption section-md">
                   <div class="container">
                     <h1 data-caption-animate="fadeInLeft" data-caption-delay="0">{{ slide.title }}</h1>
@@ -145,8 +143,7 @@
             <div class="col-md-7 col-lg-5 col-xl-6 text-lg-left wow fadeInUp">
               {% if site_content.get('services') and site_content.services.get('section_image') and site_content.services.section_image.get('image_path') %}
                 {% set services_img_path = site_content.services.section_image.image_path.replace('\\', '/') %}
-                {% set services_img_route = get_image_url(services_img_path) %}
-                <img src="{{ url_for(services_img_route, filename=services_img_path) }}" alt="" width="415" height="592"/>
+                <img src="{{ get_image_url(services_img_path) }}" alt="" width="415" height="592"/>
               {% else %}
                 <img src="{{ url_for('static', filename='images/index-1-415x592.png') }}" alt="" width="415" height="592"/>
               {% endif %}
@@ -271,18 +268,16 @@
                 <article class="thumbnail thumbnail-classic thumbnail-md">
                   {% if project.image_path %}
                     {% set project_img_path = project.image_path.replace('\\', '/') %}
-                    {% set project_img_route = get_image_url(project_img_path) %}
                   <div class="thumbnail-classic-figure">
-                    <img src="{{ url_for(project_img_route, filename=project_img_path) }}" alt="{{ project.title }}" width="420" height="350"/>
+                    <img src="{{ get_image_url(project_img_path) }}" alt="{{ project.title }}" width="420" height="350"/>
                   </div>
                   {% endif %}
                   <div class="thumbnail-classic-caption">
                     <div class="thumbnail-classic-title-wrap">
                       {% if project.image_path %}
                         {% set project_img_path = project.image_path.replace('\\', '/') %}
-                        {% set project_img_route = get_image_url(project_img_path) %}
-                      <a class="icon fl-bigmug-line-zoom60" href="{{ url_for(project_img_route, filename=project_img_path) }}" data-lightgallery="item">
-                        <img src="{{ url_for(project_img_route, filename=project_img_path) }}" alt="{{ project.title }}" width="420" height="350"/>
+                      <a class="icon fl-bigmug-line-zoom60" href="{{ get_image_url(project_img_path) }}" data-lightgallery="item">
+                        <img src="{{ get_image_url(project_img_path) }}" alt="{{ project.title }}" width="420" height="350"/>
                       </a>
                       {% endif %}
                       <h5 class="thumbnail-classic-title"><a href="{{ project.link_url if project.link_url else '#' }}">{{ project.title }}</a></h5>
@@ -404,10 +399,9 @@
                 {% if client_images %}
                   {% for client_img in client_images %}
                     {% set client_img_path = client_img.image_path.replace('\\', '/') %}
-                    {% set client_img_route = get_image_url(client_img_path) %}
                   <div class="col-sm-6 col-md-5 col-lg-6 col-xl-3 wow fadeInLeft" {% if loop.index > 1 %}data-wow-delay="{{ (loop.index - 1) * 0.1 }}s"{% endif %}>
                     <a class="clients-classic" href="{{ client_img.link_url if client_img.link_url else '#' }}">
-                      <img src="{{ url_for(client_img_route, filename=client_img_path) }}" alt="{{ client_img.alt_text if client_img.alt_text else 'Cliente' }}" width="270" height="117"/>
+                      <img src="{{ get_image_url(client_img_path) }}" alt="{{ client_img.alt_text if client_img.alt_text else 'Cliente' }}" width="270" height="117"/>
                     </a>
                   </div>
                   {% endfor %}
@@ -483,8 +477,7 @@
                 {% if feature_carousel_images %}
                   {% for img in feature_carousel_images %}
                     {% set feature_img_path = img.replace('\\', '/') %}
-                    {% set feature_img_route = get_image_url(feature_img_path) %}
-                  <a class="box-device" href="#"><img src="{{ url_for(feature_img_route, filename=feature_img_path) }}" alt="" width="313" height="580"/></a>
+                  <a class="box-device" href="#"><img src="{{ get_image_url(feature_img_path) }}" alt="" width="313" height="580"/></a>
                   {% endfor %}
                 {% else %}
                   <a class="box-device" href="#"><img src="{{ url_for('static', filename='images/index-4-313x580.png') }}" alt="" width="313" height="580"/></a>
