@@ -30,6 +30,12 @@ if is_production:
 else:
     app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
+# Configuração de armazenamento de imagens
+# Em produção (Render), sempre usar banco de dados PostgreSQL
+# Em desenvolvimento, usar banco se DATABASE_URL estiver definido, senão usar filesystem
+has_database_url = bool(os.environ.get('DATABASE_URL'))
+app.config['USE_DB_IMAGE_STORAGE'] = is_production or has_database_url
+
 # Registrar blueprint do admin
 app.register_blueprint(admin_bp)
 
@@ -149,26 +155,44 @@ def handle_recaptcha():
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    """Rota para servir arquivos da pasta de uploads persistente (fallback para desenvolvimento local)"""
+    """
+    Rota para servir arquivos da pasta de uploads.
+    APENAS para desenvolvimento local quando USE_DB_IMAGE_STORAGE é False.
+    Em produção, esta rota não deve ser usada.
+    """
+    if app.config.get('USE_DB_IMAGE_STORAGE', False):
+        # Em produção, redirecionar para rota de banco
+        from flask import redirect, url_for
+        return redirect(url_for('serve_image_from_db', image_key=filename))
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/image/<path:image_key>')
 def serve_image_from_db(image_key):
-    """Rota para servir imagens diretamente do banco de dados PostgreSQL"""
+    """
+    Rota PRINCIPAL para servir imagens.
+    Em produção: sempre do banco PostgreSQL (sem fallback).
+    Em desenvolvimento: tenta banco primeiro, fallback para arquivo apenas se USE_DB_IMAGE_STORAGE=False.
+    """
     from image_storage import get_image_from_db
-    from flask import Response
+    from flask import Response, abort
     
+    use_db_storage = app.config.get('USE_DB_IMAGE_STORAGE', False)
+    
+    # Tentar buscar no banco
     image_data, mime_type, filename = get_image_from_db(image_key)
     
     if image_data:
         return Response(image_data, mimetype=mime_type or 'image/png')
+    
+    # Se não encontrou no banco
+    if use_db_storage:
+        # Em produção, não usar fallback - retornar 404
+        abort(404)
     else:
-        # Fallback: tentar servir do sistema de arquivos local (desenvolvimento)
+        # Apenas em desenvolvimento local, tentar arquivo como fallback
         try:
             return send_from_directory(app.config['UPLOAD_FOLDER'], image_key)
         except:
-            # Se não encontrar, retornar 404
-            from flask import abort
             abort(404)
 
 

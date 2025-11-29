@@ -11,18 +11,46 @@ def save_image_to_db(image_file, image_key=None, category='images'):
     """
     Salva uma imagem no banco de dados PostgreSQL como BYTEA.
     
+    Em produção (USE_DB_IMAGE_STORAGE=True ou DATABASE_URL definido):
+    - Sempre salva no banco, retorna image_key ou None se falhar
+    
+    Em desenvolvimento (USE_DB_IMAGE_STORAGE=False e sem DATABASE_URL):
+    - Tenta salvar no banco, mas pode retornar None se não houver banco configurado
+    
     Args:
         image_file: Arquivo de imagem (Werkzeug FileStorage)
         image_key: Chave única para identificar a imagem (opcional, será gerada se não fornecida)
         category: Categoria da imagem (logos, banners, images)
     
     Returns:
-        image_key: Chave única da imagem salva
+        image_key: Chave única da imagem salva, ou None se falhar
     """
     if not image_file or not image_file.filename:
         return None
     
-    conn = get_db()
+    # Verificar se deve usar banco de dados
+    use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'
+    is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
+    has_database_url = bool(os.environ.get('DATABASE_URL'))
+    must_use_db = use_db_storage or is_production or has_database_url
+    
+    # Se deve usar banco mas não tem DATABASE_URL, tentar usar SQLite local
+    # Se não deve usar banco e não tem DATABASE_URL, retornar None (fallback para arquivo)
+    if not must_use_db and not has_database_url:
+        # Em desenvolvimento sem DATABASE_URL e sem flag, não tentar salvar no banco
+        return None
+    
+    # Tentar conectar ao banco (PostgreSQL ou SQLite)
+    try:
+        conn = get_db()
+    except Exception as e:
+        if must_use_db:
+            # Em produção, não pode falhar
+            print(f"❌ ERRO CRÍTICO: Não foi possível conectar ao banco em produção: {e}")
+            raise
+        # Em desenvolvimento, pode retornar None para usar fallback
+        print(f"⚠️ Aviso: Não foi possível conectar ao banco: {e}")
+        return None
     try:
         # Verificar se a tabela stored_images existe
         c = conn.cursor()

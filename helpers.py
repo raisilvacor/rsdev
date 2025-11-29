@@ -9,7 +9,15 @@ from flask import url_for
 def get_image_url(image_path):
     """
     Retorna a URL correta para uma imagem.
-    Verifica primeiro se está no banco de dados, depois tenta arquivo, depois static.
+    
+    Em produção (USE_DB_IMAGE_STORAGE=True):
+    - Uploads (logos/, banners/, images/) → sempre /image/<image_key>
+    - Imagens estáticas → /static/<path>
+    
+    Em desenvolvimento (USE_DB_IMAGE_STORAGE=False):
+    - Tenta /image/<image_key> primeiro (se estiver no banco)
+    - Fallback para /uploads/<path> se não estiver no banco
+    - Imagens estáticas → /static/<path>
     """
     if not image_path:
         return None
@@ -35,7 +43,7 @@ def get_image_url(image_path):
     if path.startswith('uploads/'):
         path = path.replace('uploads/', '', 1)
     
-    # Se for um upload conhecido (logos/, banners/, images/), verificar se está no banco
+    # Determinar se é upload ou estático
     is_upload = False
     if path.startswith('logos/') or path.startswith('banners/'):
         is_upload = True
@@ -44,19 +52,29 @@ def get_image_url(image_path):
         is_static = any(path.startswith(prefix) for prefix in static_image_prefixes)
         is_upload = not is_static
     
-    # Se for upload, tentar buscar no banco primeiro (para Render Free)
+    # Se for upload
     if is_upload:
-        try:
-            from image_storage import image_exists_in_db
-            if image_exists_in_db(path):
-                # Imagem está no banco, usar rota de serviço do banco
-                return url_for('serve_image_from_db', image_key=path)
-        except:
-            # Se houver erro, continuar com fallback
-            pass
+        # Verificar configuração de armazenamento
+        use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'
+        is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None
+        has_database_url = bool(os.environ.get('DATABASE_URL'))
+        use_db = use_db_storage or is_production or has_database_url
         
-        # Fallback: tentar arquivo local (desenvolvimento)
-        return url_for('uploaded_file', filename=path)
+        if use_db:
+            # Em produção ou com DATABASE_URL: sempre usar /image/<key>
+            # Assumir que image_path já é uma image_key válida
+            return url_for('serve_image_from_db', image_key=path)
+        else:
+            # Em desenvolvimento sem DATABASE_URL: verificar se está no banco primeiro
+            try:
+                from image_storage import image_exists_in_db
+                if image_exists_in_db(path):
+                    return url_for('serve_image_from_db', image_key=path)
+            except:
+                pass
+            
+            # Fallback: tentar arquivo local
+            return url_for('uploaded_file', filename=path)
     
     # Padrão: assumir que é estático
     return url_for('static', filename=path)
