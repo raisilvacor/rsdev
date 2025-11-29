@@ -24,6 +24,61 @@ def save_image_to_db(image_file, image_key=None, category='images'):
     
     conn = get_db()
     try:
+        # Verificar se a tabela stored_images existe
+        c = conn.cursor()
+        try:
+            # Tentar verificar se a tabela existe
+            if os.environ.get('DATABASE_URL'):
+                # PostgreSQL
+                c.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='stored_images')")
+                table_exists = c.fetchone()
+                table_exists = table_exists[0] if isinstance(table_exists, (tuple, list)) else False
+            else:
+                # SQLite
+                c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stored_images'")
+                table_exists = c.fetchone() is not None
+        except:
+            table_exists = False
+        
+        if not table_exists:
+            print("⚠️ Tabela stored_images não existe. Criando...")
+            # Criar tabela se não existir
+            if os.environ.get('DATABASE_URL'):
+                # PostgreSQL
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS stored_images (
+                        id SERIAL PRIMARY KEY,
+                        image_key VARCHAR(500) UNIQUE NOT NULL,
+                        image_data BYTEA NOT NULL,
+                        mime_type VARCHAR(100) NOT NULL,
+                        filename VARCHAR(255) NOT NULL,
+                        file_size INTEGER,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                c.execute('CREATE INDEX IF NOT EXISTS idx_stored_images_key ON stored_images(image_key)')
+            else:
+                # SQLite
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS stored_images (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        image_key TEXT UNIQUE NOT NULL,
+                        image_data BLOB NOT NULL,
+                        mime_type TEXT NOT NULL,
+                        filename TEXT NOT NULL,
+                        file_size INTEGER,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                try:
+                    c.execute('CREATE INDEX IF NOT EXISTS idx_stored_images_key ON stored_images(image_key)')
+                except:
+                    pass
+            conn.commit()
+            print("✓ Tabela stored_images criada com sucesso!")
+        
         # Ler dados binários da imagem
         image_file.seek(0)
         image_data = image_file.read()
@@ -38,27 +93,37 @@ def save_image_to_db(image_file, image_key=None, category='images'):
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             image_key = f"{category}/{timestamp}_{filename}"
         
-        # Salvar no banco de dados
-        c = conn.cursor()
+        # Preparar query adaptada para SQLite ou PostgreSQL
+        is_postgres = os.environ.get('DATABASE_URL') is not None
+        file_size = len(image_data) if isinstance(image_data, (bytes, bytearray)) else len(bytes(image_data)) if image_data else 0
         
-        # Converter ? para %s se necessário
-        query = '''INSERT INTO stored_images (image_key, image_data, mime_type, filename, file_size, updated_at)
-                   VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                   ON CONFLICT (image_key) DO UPDATE
-                   SET image_data = EXCLUDED.image_data,
-                       mime_type = EXCLUDED.mime_type,
-                       filename = EXCLUDED.filename,
-                       file_size = EXCLUDED.file_size,
-                       updated_at = CURRENT_TIMESTAMP'''
+        if is_postgres:
+            # PostgreSQL: usar psycopg2.Binary para BYTEA
+            try:
+                import psycopg2
+                image_data_binary = psycopg2.Binary(image_data)
+            except ImportError:
+                # Se psycopg2 não estiver disponível, usar bytes direto
+                image_data_binary = image_data
+            
+            # PostgreSQL usa %s e ON CONFLICT funciona nativamente
+            query = '''INSERT INTO stored_images (image_key, image_data, mime_type, filename, file_size, updated_at)
+                       VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                       ON CONFLICT (image_key) DO UPDATE
+                       SET image_data = EXCLUDED.image_data,
+                           mime_type = EXCLUDED.mime_type,
+                           filename = EXCLUDED.filename,
+                           file_size = EXCLUDED.file_size,
+                           updated_at = CURRENT_TIMESTAMP'''
+            c.execute(query, (image_key, image_data_binary, mime_type, filename, file_size))
+        else:
+            # SQLite usa ? e INSERT OR REPLACE
+            query = '''INSERT OR REPLACE INTO stored_images (image_key, image_data, mime_type, filename, file_size, updated_at)
+                       VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)'''
+            c.execute(query, (image_key, image_data, mime_type, filename, file_size))
         
-        # Adaptar query para PostgreSQL se necessário
-        if os.environ.get('DATABASE_URL') and '?' in query:
-            query = query.replace('?', '%s')
-        
-        file_size = len(image_data)
-        c.execute(query, (image_key, image_data, mime_type, filename, file_size))
         conn.commit()
-        
+        print(f"✓ Imagem salva no banco: {image_key} ({file_size} bytes)")
         return image_key
     except Exception as e:
         conn.rollback()

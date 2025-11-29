@@ -172,6 +172,24 @@ def init_db():
                   is_read INTEGER DEFAULT 0,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
+    # Tabela de imagens armazenadas no banco (para persistência no Render Free)
+    # Também funciona em SQLite local para desenvolvimento
+    c.execute('''CREATE TABLE IF NOT EXISTS stored_images
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  image_key TEXT UNIQUE NOT NULL,
+                  image_data BLOB NOT NULL,
+                  mime_type TEXT NOT NULL,
+                  filename TEXT NOT NULL,
+                  file_size INTEGER,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    
+    # Criar índice para busca rápida por image_key
+    try:
+        c.execute('CREATE INDEX IF NOT EXISTS idx_stored_images_key ON stored_images(image_key)')
+    except:
+        pass  # Índice pode já existir
+    
     # Criar usuário admin padrão (senha: admin123)
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
@@ -507,35 +525,16 @@ def content():
                                         else:
                                             category = 'images'
                                         
-                                        # Tentar salvar no banco de dados primeiro (para persistência no Render Free)
-                                        from image_storage import save_image_to_db
-                                        image_path = save_image_to_db(image_file, category=category)
+                                        # Usar helper para salvar de forma persistente (banco primeiro, depois arquivo)
+                                        from upload_helper import save_image_persistent
+                                        image_path = save_image_persistent(image_file, category=category, upload_base=upload_base)
                                         
                                         if image_path:
-                                            # Sucesso: imagem salva no banco
                                             if key_tuple not in updates:
                                                 updates[key_tuple] = {'content': None, 'image_path': None}
                                             updates[key_tuple]['image_path'] = image_path
                                         else:
-                                            # Fallback: salvar em arquivo local (desenvolvimento)
-                                            image_file.seek(0)  # Reset file pointer
-                                            os.makedirs(upload_dir, exist_ok=True)
-                                            image_file.save(upload_path)
-                                            
-                                            if os.path.exists(upload_path):
-                                                # Formato: logos/filename.jpg ou banners/filename.jpg ou images/filename.jpg
-                                                if section == 'header' and 'logo' in field:
-                                                    image_path = f"logos/{filename}"
-                                                elif section == 'banner':
-                                                    image_path = f"banners/{filename}"
-                                                else:
-                                                    image_path = f"images/{filename}"
-                                                
-                                                if key_tuple not in updates:
-                                                    updates[key_tuple] = {'content': None, 'image_path': None}
-                                                updates[key_tuple]['image_path'] = image_path
-                                            else:
-                                                flash(f'Erro: Arquivo {filename} não foi salvo corretamente.', 'error')
+                                            flash(f'Erro: Arquivo {filename} não foi salvo corretamente.', 'error')
                                     except Exception as e:
                                         flash(f'Erro ao salvar imagem {filename}: {str(e)}', 'error')
                                         import traceback
@@ -642,24 +641,9 @@ def projects():
             
             image_path = None
             if image_file and image_file.filename and allowed_file(image_file.filename):
-                # Tentar salvar no banco de dados primeiro (persistência no Render Free)
-                try:
-                    from image_storage import save_image_to_db
-                    image_path = save_image_to_db(image_file, category='images')
-                except Exception as e:
-                    print(f"Erro ao salvar no banco, usando fallback: {e}")
-                
-                # Fallback para arquivo local se não conseguiu salvar no banco
-                if not image_path:
-                    filename = secure_filename(image_file.filename)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = f"{timestamp}_{filename}"
-                    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
-                    os.makedirs(upload_dir, exist_ok=True)
-                    upload_path = os.path.join(upload_dir, filename)
-                    image_file.seek(0)  # Reset file pointer
-                    image_file.save(upload_path)
-                    image_path = f"images/{filename}"
+                # Usar helper para salvar de forma persistente (banco primeiro, depois arquivo)
+                from upload_helper import save_image_persistent
+                image_path = save_image_persistent(image_file, category='images', upload_base=current_app.config['UPLOAD_FOLDER'])
             
             project_id = request.form.get('id')
             if project_id:
@@ -704,19 +688,24 @@ def services():
         if request.form.get('update_section_image') == '1':
             image_file = request.files.get('services_section_image')
             if image_file and image_file.filename and allowed_file(image_file.filename):
-                filename = secure_filename(image_file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"{timestamp}_{filename}"
-                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
-                os.makedirs(upload_dir, exist_ok=True)
-                upload_path = os.path.join(upload_dir, filename)
-                image_file.save(upload_path)
-                image_path = f"images/{filename}"
+                # Tentar salvar no banco de dados primeiro (persistência no Render Free)
+                try:
+                    from image_storage import save_image_to_db
+                    image_path = save_image_to_db(image_file, category='images')
+                except Exception as e:
+                    print(f"Erro ao salvar no banco, usando fallback: {e}")
+                    image_path = None
                 
-                conn.execute('''INSERT OR REPLACE INTO site_content 
-                               (section, field, content, image_path, updated_at)
-                               VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''',
-                           ('services', 'section_image', None, image_path))
+                # Fallback para arquivo local se não conseguiu salvar no banco
+                if not image_path:
+                    from upload_helper import save_image_persistent
+                    image_path = save_image_persistent(image_file, category='images', upload_base=current_app.config['UPLOAD_FOLDER'])
+                
+                if image_path:
+                    conn.execute('''INSERT OR REPLACE INTO site_content 
+                                   (section, field, content, image_path, updated_at)
+                                   VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''',
+                               ('services', 'section_image', None, image_path))
                 conn.commit()
                 flash('Imagem da seção salva com sucesso!', 'success')
             else:
@@ -1044,14 +1033,9 @@ def carousel():
             
             image_path = None
             if image_file and image_file.filename and allowed_file(image_file.filename):
-                filename = secure_filename(image_file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"{timestamp}_{filename}"
-                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'banners')
-                os.makedirs(upload_dir, exist_ok=True)
-                upload_path = os.path.join(upload_dir, filename)
-                image_file.save(upload_path)
-                image_path = f"banners/{filename}"
+                # Usar helper para salvar de forma persistente (banco primeiro, depois arquivo)
+                from upload_helper import save_image_persistent
+                image_path = save_image_persistent(image_file, category='banners', upload_base=current_app.config['UPLOAD_FOLDER'])
             elif slide_id:
                 # Buscar image_path atual se não foi enviada nova imagem
                 existing = conn.execute('SELECT image_path FROM carousel_slides WHERE id = ?', (slide_id,)).fetchone()
@@ -1108,16 +1092,11 @@ def company_stats():
             order_index = int(request.form.get('client_image_order', 0))
             
             if image_file and image_file.filename and allowed_file(image_file.filename):
-                filename = secure_filename(image_file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"{timestamp}_{filename}"
-                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
-                os.makedirs(upload_dir, exist_ok=True)
-                upload_path = os.path.join(upload_dir, filename)
-                image_file.save(upload_path)
-                image_path = f"images/{filename}"
+                # Usar helper para salvar de forma persistente (banco primeiro, depois arquivo)
+                from upload_helper import save_image_persistent
+                image_path = save_image_persistent(image_file, category='images', upload_base=current_app.config['UPLOAD_FOLDER'])
                 
-                if image_id:
+                if image_path and image_id:
                     conn.execute('''UPDATE client_images SET image_path=?, alt_text=?, link_url=?, 
                                   order_index=?, updated_at=CURRENT_TIMESTAMP WHERE id=?''',
                                (image_path, alt_text, link_url, order_index, image_id))
@@ -1202,19 +1181,15 @@ def feature_tabs():
             uploaded = 0
             for image_file in image_files:
                 if image_file.filename and allowed_file(image_file.filename):
-                    filename = secure_filename(image_file.filename)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = f"{timestamp}_{filename}"
-                    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
-                    os.makedirs(upload_dir, exist_ok=True)
-                    upload_path = os.path.join(upload_dir, filename)
-                    image_file.save(upload_path)
-                    image_path = f"images/{filename}"
+                    # Usar helper para salvar de forma persistente (banco primeiro, depois arquivo)
+                    from upload_helper import save_image_persistent
+                    image_path = save_image_persistent(image_file, category='images', upload_base=current_app.config['UPLOAD_FOLDER'])
                     
-                    conn.execute('''INSERT INTO site_content (section, field, image_path, updated_at)
-                                   VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                               ('feature_tabs', f'carousel_image_{uploaded}', image_path))
-                    uploaded += 1
+                    if image_path:
+                        conn.execute('''INSERT INTO site_content (section, field, image_path, updated_at)
+                                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
+                                   ('feature_tabs', f'carousel_image_{uploaded}', image_path))
+                        uploaded += 1
             if uploaded > 0:
                 conn.commit()
                 flash(f'{uploaded} imagem(ns) carregada(s) com sucesso!', 'success')
