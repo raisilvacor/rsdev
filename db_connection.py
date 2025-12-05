@@ -49,6 +49,13 @@ def get_db():
     psycopg2_module = None
     RealDictCursor_class = None
     
+    # Detectar se estamos em produção (Render)
+    is_production = (
+        os.environ.get('FLASK_ENV') == 'production' or
+        os.environ.get('RENDER') == 'true' or
+        os.environ.get('PORT') is not None
+    )
+    
     if database_url:
         # Tentar importar psycopg2
         try:
@@ -58,15 +65,27 @@ def get_db():
             psycopg2_module = psycopg2
             RealDictCursor_class = RealDictCursor
         except ImportError as e:
-            # Se psycopg2 não pode ser importado (ex: Python 3.13 incompatível),
-            # fazer fallback para SQLite com aviso nos logs
+            # Se psycopg2 não pode ser importado
             import sys
-            print(f"⚠️ AVISO CRÍTICO: Não foi possível importar psycopg2. Erro: {e}", file=sys.stderr)
-            print(f"⚠️ Isso geralmente acontece quando psycopg2-binary não é compatível com Python 3.13.", file=sys.stderr)
-            print(f"⚠️ SOLUÇÃO: No painel do Render, faça 'Clear Build Cache & Deploy' para aplicar runtime.txt", file=sys.stderr)
-            print(f"⚠️ Usando SQLite como fallback temporário...", file=sys.stderr)
-            psycopg2_module = None
-            RealDictCursor_class = None
+            error_msg = f"Não foi possível importar psycopg2. Erro: {e}"
+            print(f"❌ ERRO CRÍTICO: {error_msg}", file=sys.stderr)
+            
+            if is_production:
+                # EM PRODUÇÃO: NUNCA fazer fallback para SQLite (que é efêmero)
+                # Deve falhar explicitamente para evitar perda de dados
+                print(f"❌ ERRO FATAL: Em produção (Render), PostgreSQL é obrigatório!", file=sys.stderr)
+                print(f"❌ SQLite não pode ser usado em produção pois é efêmero e perde dados após hibernação.", file=sys.stderr)
+                print(f"❌ SOLUÇÃO: No painel do Render, faça 'Clear Build Cache & Deploy' para aplicar runtime.txt (Python 3.12)", file=sys.stderr)
+                raise ImportError(
+                    f"PostgreSQL é obrigatório em produção. psycopg2 não pôde ser importado: {e}. "
+                    f"Verifique se o runtime.txt está configurado para Python 3.12 e faça 'Clear Build Cache & Deploy' no Render."
+                ) from e
+            else:
+                # Em desenvolvimento, pode fazer fallback para SQLite
+                print(f"⚠️ Isso geralmente acontece quando psycopg2-binary não é compatível com Python 3.13.", file=sys.stderr)
+                print(f"⚠️ Usando SQLite como fallback temporário (apenas em desenvolvimento)...", file=sys.stderr)
+                psycopg2_module = None
+                RealDictCursor_class = None
     
     # Se psycopg2 foi importado com sucesso e DATABASE_URL está definido, usar PostgreSQL
     if psycopg2_module is not None and database_url:

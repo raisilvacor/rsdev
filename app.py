@@ -46,7 +46,7 @@ app.jinja_env.globals['get_image_url'] = get_image_url
 
 # Inicializar banco de dados
 # Se DATABASE_URL estiver definido, usar PostgreSQL e inicializar automaticamente
-# Caso contrário, inicializar SQLite local
+# Caso contrário, inicializar SQLite local (apenas em desenvolvimento)
 if os.environ.get('DATABASE_URL'):
     try:
         from init_postgres import init_postgres_db
@@ -54,11 +54,27 @@ if os.environ.get('DATABASE_URL'):
         init_postgres_db()
         print("✓ PostgreSQL inicializado com sucesso!")
     except Exception as e:
-        print(f"⚠️ Aviso: Erro ao inicializar PostgreSQL: {e}")
-        print("A aplicação continuará, mas pode haver problemas se o banco não estiver configurado.")
+        error_msg = f"Erro ao inicializar PostgreSQL: {e}"
+        print(f"❌ ERRO CRÍTICO: {error_msg}")
+        
+        # Em produção, PostgreSQL é obrigatório - não continuar sem ele
+        if is_production:
+            print("❌ ERRO FATAL: Em produção (Render), PostgreSQL é obrigatório!")
+            print("❌ A aplicação não pode iniciar sem conexão com PostgreSQL.")
+            print("❌ Verifique se DATABASE_URL está configurado corretamente no Render.")
+            raise Exception(f"Falha crítica: PostgreSQL é obrigatório em produção. {error_msg}") from e
+        else:
+            # Em desenvolvimento, pode continuar com aviso
+            print("⚠️ Aviso: Erro ao inicializar PostgreSQL em desenvolvimento.")
+            print("⚠️ A aplicação continuará, mas pode haver problemas se o banco não estiver configurado.")
 else:
-    init_db()
-    print("✓ SQLite inicializado com sucesso!")
+    # SQLite apenas em desenvolvimento
+    if is_production:
+        print("⚠️ AVISO: DATABASE_URL não está definido em produção!")
+        print("⚠️ SQLite não pode ser usado em produção pois é efêmero.")
+    else:
+        init_db()
+        print("✓ SQLite inicializado com sucesso!")
 
 # Configurações de email (carregar de config.py ou variáveis de ambiente)
 app.config['MAIL_CONFIG'] = {
