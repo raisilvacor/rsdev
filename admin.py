@@ -22,6 +22,41 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def _execute_insert_replace(conn, table_name, columns, values, unique_columns):
+    """
+    Executa INSERT OR REPLACE adaptado para PostgreSQL ou SQLite.
+    
+    Args:
+        conn: Conexão do banco
+        table_name: Nome da tabela
+        columns: Lista de colunas (ex: ['section', 'field', 'content'])
+        values: Tupla com valores
+        unique_columns: Lista de colunas que formam a chave única (ex: ['section', 'field'])
+    """
+    is_postgres = hasattr(conn, '_conn')
+    
+    if is_postgres:
+        # PostgreSQL: usar ON CONFLICT
+        cols_str = ', '.join(columns)
+        placeholders = ', '.join(['%s'] * len(columns))
+        unique_cols_str = ', '.join(unique_columns)
+        update_cols = [col for col in columns if col not in unique_columns]
+        update_set = ', '.join([f"{col} = EXCLUDED.{col}" for col in update_cols])
+        
+        query = f'''INSERT INTO {table_name} ({cols_str})
+                   VALUES ({placeholders})
+                   ON CONFLICT ({unique_cols_str}) DO UPDATE
+                   SET {update_set}, updated_at = CURRENT_TIMESTAMP'''
+        conn.execute(query, values)
+    else:
+        # SQLite: usar INSERT OR REPLACE
+        cols_str = ', '.join(columns)
+        placeholders = ', '.join(['?'] * len(columns))
+        query = f'''INSERT OR REPLACE INTO {table_name} ({cols_str}, updated_at)
+                   VALUES ({placeholders}, CURRENT_TIMESTAMP)'''
+        conn.execute(query, values)
+
+
 def init_db():
     """Inicializa o banco de dados"""
     conn = sqlite3.connect(DB_PATH)
@@ -564,11 +599,11 @@ def content():
                 else:
                     image_path_value = existing['image_path'] if existing and existing['image_path'] else None
                 
-                # Inserir ou atualizar
-                conn.execute('''INSERT OR REPLACE INTO site_content 
-                               (section, field, content, image_path, updated_at)
-                               VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''',
-                            (section, field, content_value, image_path_value))
+                # Inserir ou atualizar - adaptar para PostgreSQL ou SQLite
+                _execute_insert_replace(conn, 'site_content', 
+                                       ['section', 'field', 'content', 'image_path'],
+                                       (section, field, content_value, image_path_value),
+                                       ['section', 'field'])
             
             if updates:
                 conn.commit()
@@ -614,16 +649,16 @@ def projects():
             filter_type1 = request.form.get('filter_type1', 'Aplicativos Mobile')
             filter_type2 = request.form.get('filter_type2', 'Sites')
             
-            conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                          VALUES (?, ?, ?, CURRENT_TIMESTAMP)''', ('projects', 'title', section_title))
-            conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                          VALUES (?, ?, ?, CURRENT_TIMESTAMP)''', ('projects', 'description', section_description))
-            conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                          VALUES (?, ?, ?, CURRENT_TIMESTAMP)''', ('projects', 'filter_all', filter_all))
-            conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                          VALUES (?, ?, ?, CURRENT_TIMESTAMP)''', ('projects', 'filter_type1', filter_type1))
-            conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                          VALUES (?, ?, ?, CURRENT_TIMESTAMP)''', ('projects', 'filter_type2', filter_type2))
+            _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                                   ('projects', 'title', section_title), ['section', 'field'])
+            _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                                   ('projects', 'description', section_description), ['section', 'field'])
+            _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                                   ('projects', 'filter_all', filter_all), ['section', 'field'])
+            _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                                   ('projects', 'filter_type1', filter_type1), ['section', 'field'])
+            _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                                   ('projects', 'filter_type2', filter_type2), ['section', 'field'])
             conn.commit()
             flash('Configurações da seção salvas com sucesso!', 'success')
         elif 'delete' in request.form:
@@ -702,10 +737,10 @@ def services():
                     image_path = save_image_persistent(image_file, category='images', upload_base=current_app.config['UPLOAD_FOLDER'])
                 
                 if image_path:
-                    conn.execute('''INSERT OR REPLACE INTO site_content 
-                                   (section, field, content, image_path, updated_at)
-                                   VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''',
-                               ('services', 'section_image', None, image_path))
+                    _execute_insert_replace(conn, 'site_content', 
+                                           ['section', 'field', 'content', 'image_path'],
+                                           ('services', 'section_image', None, image_path),
+                                           ['section', 'field'])
                 conn.commit()
                 flash('Imagem da seção salva com sucesso!', 'success')
             else:
@@ -813,29 +848,23 @@ def footer():
         social_google = request.form.get('social_google', '').strip()
         social_instagram = request.form.get('social_instagram', '').strip()
         
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'social_facebook', social_facebook))
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'social_twitter', social_twitter))
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'social_google', social_google))
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'social_instagram', social_instagram))
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'social_facebook', social_facebook), ['section', 'field'])
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'social_twitter', social_twitter), ['section', 'field'])
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'social_google', social_google), ['section', 'field'])
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'social_instagram', social_instagram), ['section', 'field'])
         
         # Outros campos do rodapé
         copyright_text = request.form.get('copyright_text', '')
         rights_text = request.form.get('rights_text', '')
         
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'copyright_text', copyright_text))
-        conn.execute('''INSERT OR REPLACE INTO site_content (section, field, content, updated_at)
-                       VALUES (?, ?, ?, CURRENT_TIMESTAMP)''',
-                   ('footer', 'rights_text', rights_text))
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'copyright_text', copyright_text), ['section', 'field'])
+        _execute_insert_replace(conn, 'site_content', ['section', 'field', 'content'],
+                               ('footer', 'rights_text', rights_text), ['section', 'field'])
         
         conn.commit()
         flash('Rodapé atualizado com sucesso!', 'success')
@@ -993,9 +1022,8 @@ def settings():
     if request.method == 'POST':
         for key, value in request.form.items():
             if key != 'submit':
-                conn.execute('''INSERT OR REPLACE INTO settings (key, value, updated_at)
-                               VALUES (?, ?, CURRENT_TIMESTAMP)''',
-                           (key, value))
+                _execute_insert_replace(conn, 'settings', ['key', 'value'],
+                                       (key, value), ['key'])
         conn.commit()
         flash('Configurações salvas com sucesso!', 'success')
     
