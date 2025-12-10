@@ -39,16 +39,24 @@ def save_image_persistent(image_file, category='images', upload_base=None):
         from image_storage import save_image_to_db
         image_key = save_image_to_db(image_file, category=category)
         if image_key:
+            print(f"✓ Imagem salva com sucesso no banco: {image_key}")
             return image_key
+        else:
+            # save_image_to_db retornou None
+            if must_use_db:
+                error_msg = "Falha ao salvar imagem no banco (retornou None) em produção."
+                print(f"❌ ERRO CRÍTICO: {error_msg}")
+                raise Exception(error_msg)
     except Exception as e:
-        print(f"⚠️ Erro ao salvar no banco: {e}")
+        error_msg = str(e)
+        print(f"⚠️ Erro ao salvar no banco: {error_msg}")
         import traceback
         traceback.print_exc()
         
-        # Se deve usar banco obrigatoriamente, não tentar fallback
+        # Se deve usar banco obrigatoriamente, re-raise o erro
         if must_use_db:
-            print("❌ ERRO CRÍTICO: Falha ao salvar no banco em produção. Upload cancelado.")
-            return None
+            print(f"❌ ERRO CRÍTICO: Falha ao salvar no banco em produção. Upload cancelado: {error_msg}")
+            raise Exception(f"Falha ao salvar imagem no banco de dados: {error_msg}") from e
     
     # Fallback: salvar em arquivo local (APENAS em desenvolvimento sem DATABASE_URL)
     if not must_use_db and not has_database_url:

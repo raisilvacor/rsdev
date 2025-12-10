@@ -1,0 +1,159 @@
+[1mdiff --git a/app.py b/app.py[m
+[1mindex 66698b2..a729dbc 100644[m
+[1m--- a/app.py[m
+[1m+++ b/app.py[m
+[36m@@ -30,6 +30,12 @@[m [mif is_production:[m
+ else:[m
+     app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'[m
+ [m
+[32m+[m[32m# Configuração de armazenamento de imagens[m
+[32m+[m[32m# Em produção (Render), sempre usar banco de dados PostgreSQL[m
+[32m+[m[32m# Em desenvolvimento, usar banco se DATABASE_URL estiver definido, senão usar filesystem[m
+[32m+[m[32mhas_database_url = bool(os.environ.get('DATABASE_URL'))[m
+[32m+[m[32mapp.config['USE_DB_IMAGE_STORAGE'] = is_production or has_database_url[m
+[32m+[m
+ # Registrar blueprint do admin[m
+ app.register_blueprint(admin_bp)[m
+ [m
+[36m@@ -149,26 +155,44 @@[m [mdef handle_recaptcha():[m
+ [m
+ @app.route('/uploads/<path:filename>')[m
+ def uploaded_file(filename):[m
+[31m-    """Rota para servir arquivos da pasta de uploads persistente (fallback para desenvolvimento local)"""[m
+[32m+[m[32m    """[m
+[32m+[m[32m    Rota para servir arquivos da pasta de uploads.[m
+[32m+[m[32m    APENAS para desenvolvimento local quando USE_DB_IMAGE_STORAGE é False.[m
+[32m+[m[32m    Em produção, esta rota não deve ser usada.[m
+[32m+[m[32m    """[m
+[32m+[m[32m    if app.config.get('USE_DB_IMAGE_STORAGE', False):[m
+[32m+[m[32m        # Em produção, redirecionar para rota de banco[m
+[32m+[m[32m        from flask import redirect, url_for[m
+[32m+[m[32m        return redirect(url_for('serve_image_from_db', image_key=filename))[m
+     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)[m
+ [m
+ @app.route('/image/<path:image_key>')[m
+ def serve_image_from_db(image_key):[m
+[31m-    """Rota para servir imagens diretamente do banco de dados PostgreSQL"""[m
+[32m+[m[32m    """[m
+[32m+[m[32m    Rota PRINCIPAL para servir imagens.[m
+[32m+[m[32m    Em produção: sempre do banco PostgreSQL (sem fallback).[m
+[32m+[m[32m    Em desenvolvimento: tenta banco primeiro, fallback para arquivo apenas se USE_DB_IMAGE_STORAGE=False.[m
+[32m+[m[32m    """[m
+     from image_storage import get_image_from_db[m
+[31m-    from flask import Response[m
+[32m+[m[32m    from flask import Response, abort[m
+[32m+[m[41m    [m
+[32m+[m[32m    use_db_storage = app.config.get('USE_DB_IMAGE_STORAGE', False)[m
+     [m
+[32m+[m[32m    # Tentar buscar no banco[m
+     image_data, mime_type, filename = get_image_from_db(image_key)[m
+     [m
+     if image_data:[m
+         return Response(image_data, mimetype=mime_type or 'image/png')[m
+[32m+[m[41m    [m
+[32m+[m[32m    # Se não encontrou no banco[m
+[32m+[m[32m    if use_db_storage:[m
+[32m+[m[32m        # Em produção, não usar fallback - retornar 404[m
+[32m+[m[32m        abort(404)[m
+     else:[m
+[31m-        # Fallback: tentar servir do sistema de arquivos local (desenvolvimento)[m
+[32m+[m[32m        # Apenas em desenvolvimento local, tentar arquivo como fallback[m
+         try:[m
+             return send_from_directory(app.config['UPLOAD_FOLDER'], image_key)[m
+         except:[m
+[31m-            # Se não encontrar, retornar 404[m
+[31m-            from flask import abort[m
+             abort(404)[m
+ [m
+ [m
+[1mdiff --git a/helpers.py b/helpers.py[m
+[1mindex 058be28..2dfac09 100644[m
+[1m--- a/helpers.py[m
+[1m+++ b/helpers.py[m
+[36m@@ -9,7 +9,15 @@[m [mfrom flask import url_for[m
+ def get_image_url(image_path):[m
+     """[m
+     Retorna a URL correta para uma imagem.[m
+[31m-    Verifica primeiro se está no banco de dados, depois tenta arquivo, depois static.[m
+[32m+[m[41m    [m
+[32m+[m[32m    Em produção (USE_DB_IMAGE_STORAGE=True):[m
+[32m+[m[32m    - Uploads (logos/, banners/, images/) → sempre /image/<image_key>[m
+[32m+[m[32m    - Imagens estáticas → /static/<path>[m
+[32m+[m[41m    [m
+[32m+[m[32m    Em desenvolvimento (USE_DB_IMAGE_STORAGE=False):[m
+[32m+[m[32m    - Tenta /image/<image_key> primeiro (se estiver no banco)[m
+[32m+[m[32m    - Fallback para /uploads/<path> se não estiver no banco[m
+[32m+[m[32m    - Imagens estáticas → /static/<path>[m
+     """[m
+     if not image_path:[m
+         return None[m
+[36m@@ -35,7 +43,7 @@[m [mdef get_image_url(image_path):[m
+     if path.startswith('uploads/'):[m
+         path = path.replace('uploads/', '', 1)[m
+     [m
+[31m-    # Se for um upload conhecido (logos/, banners/, images/), verificar se está no banco[m
+[32m+[m[32m    # Determinar se é upload ou estático[m
+     is_upload = False[m
+     if path.startswith('logos/') or path.startswith('banners/'):[m
+         is_upload = True[m
+[36m@@ -44,19 +52,29 @@[m [mdef get_image_url(image_path):[m
+         is_static = any(path.startswith(prefix) for prefix in static_image_prefixes)[m
+         is_upload = not is_static[m
+     [m
+[31m-    # Se for upload, tentar buscar no banco primeiro (para Render Free)[m
+[32m+[m[32m    # Se for upload[m
+     if is_upload:[m
+[31m-        try:[m
+[31m-            from image_storage import image_exists_in_db[m
+[31m-            if image_exists_in_db(path):[m
+[31m-                # Imagem está no banco, usar rota de serviço do banco[m
+[31m-                return url_for('serve_image_from_db', image_key=path)[m
+[31m-        except:[m
+[31m-            # Se houver erro, continuar com fallback[m
+[31m-            pass[m
+[32m+[m[32m        # Verificar configuração de armazenamento[m
+[32m+[m[32m        use_db_storage = os.environ.get('USE_DB_IMAGE_STORAGE', 'true').lower() == 'true'[m
+[32m+[m[32m        is_production = os.environ.get('FLASK_ENV') == 'production' or os.environ.get('RENDER') == 'true' or os.environ.get('PORT') is not None[m
+[32m+[m[32m        has_database_url = bool(os.environ.get('DATABASE_URL'))[m
+[32m+[m[32m        use_db = use_db_storage or is_production or has_database_url[m
+         [m
+[31m-        # Fallback: tentar arquivo local (desenvolvimento)[m
+[31m-        return url_for('uploaded_file', filename=path)[m
+[32m+[m[32m        if use_db:[m
+[32m+[m[32m            # Em produção ou com DATABASE_URL: sempre usar /image/<key>[m
+[32m+[m[32m            # Assumir que image_path já é uma image_key válida[m
+[32m+[m[32m            return url_for('serve_image_from_db', image_key=path)[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            # Em desenvolvimento sem DATABASE_URL: verificar se está no banco primeiro[m
+[32m+[m[32m            try:[m
+[32m+[m[32m                from image_storage import image_exists_in_db[m
+[32m+[m[32m                if image_exists_in_db(path):[m
+[32m+[m[32m                    return url_for('serve_image_from_db', image_key=path)[m
+[32m+[m[32m            except:[m
+[32m+[m[32m                pass[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Fallback: tentar arquivo local[m
+[32m+[m[32m            return url_for('uploaded_file', filename=path)[m
+     [m
+     # Padrão: assumir que é estático[m
+     return url_for('static', filename=path)[m
+[1mdiff --git a/image_storage.py b/image_storage.py[m
+[1mindex 3c84899..c174a00 100644[m
+[1m--- a/image_storage.py[m
+[1m+++ b/image_storage.py[m
+[36m@@ -11,18 +11,46 @@[m [mdef save_image_to_db(image_file, image_key=None, category='images'):[m
+     """[m
+     Salva uma imagem no banco de dados PostgreSQL como BYTEA.[m
+     [m
+[32m+[m[32m    Em produção (USE_DB_IMAGE_STORAGE=True ou DATABASE_URL definido):[m
+[32m+[m[32m    - Sempre salva no banco, retorna image_key ou None se falhar[m
+[32m+[m[41m    [m
+[32m+[m[32m    Em desenvolvimento (USE_DB_IMAGE_STORAGE=False e sem DATABASE_URL):[m
+[32m+[m[32m    - Tenta salvar no banco, mas pode retornar None se não houver banco configurado[m
+[32m+[m[41m    [m
+     Args:[m
+         image_file: Arquivo de imagem (Werkzeug FileStorage)[m
+         image_key: Chave única para identificar a imagem (opcional, será gerada se não fornecida)[m
+         category: Categoria da imagem (logos, banners, images)[m
+     [m
+ 
