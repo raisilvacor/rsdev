@@ -11,11 +11,21 @@ class CompatRow:
     def __init__(self, row_dict):
         if isinstance(row_dict, dict):
             self._dict = row_dict
+            # Criar lista de valores para acesso por índice
+            self._values = list(row_dict.values())
         else:
             # Se já for um objeto row-like, tentar converter
             self._dict = dict(row_dict) if hasattr(row_dict, 'keys') else {}
+            self._values = list(self._dict.values())
     
     def __getitem__(self, key):
+        # Suportar acesso por índice numérico ou por chave
+        if isinstance(key, int):
+            # Acesso por índice (para compatibilidade com SQLite)
+            if 0 <= key < len(self._values):
+                return self._values[key]
+            raise IndexError(f"Index {key} out of range")
+        # Acesso por chave (nome da coluna)
         return self._dict[key]
     
     def __getattr__(self, key):
@@ -25,13 +35,20 @@ class CompatRow:
         return self._dict.keys()
     
     def __contains__(self, key):
+        if isinstance(key, int):
+            return 0 <= key < len(self._values)
         return key in self._dict
     
     def get(self, key, default=None):
+        if isinstance(key, int):
+            return self._values[key] if 0 <= key < len(self._values) else default
         return self._dict.get(key, default)
     
     def __iter__(self):
-        return iter(self._dict.values())
+        return iter(self._values)
+    
+    def __len__(self):
+        return len(self._values)
     
     def __repr__(self):
         return f"CompatRow({self._dict})"

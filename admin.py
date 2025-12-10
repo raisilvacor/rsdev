@@ -464,10 +464,10 @@ def dashboard():
     conn = get_db()
     
     # Estatísticas
-    projects_count = conn.execute('SELECT COUNT(*) FROM projects').fetchone()[0]
-    services_count = conn.execute('SELECT COUNT(*) FROM services').fetchone()[0]
-    posts_count = conn.execute('SELECT COUNT(*) FROM blog_posts').fetchone()[0]
-    pricing_count = conn.execute('SELECT COUNT(*) FROM pricing').fetchone()[0]
+    projects_count = conn.execute('SELECT COUNT(*) as count FROM projects').fetchone()[0]
+    services_count = conn.execute('SELECT COUNT(*) as count FROM services').fetchone()[0]
+    posts_count = conn.execute('SELECT COUNT(*) as count FROM blog_posts').fetchone()[0]
+    pricing_count = conn.execute('SELECT COUNT(*) as count FROM pricing').fetchone()[0]
     
     conn.close()
     
